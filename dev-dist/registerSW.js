@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/PalForge/dev-sw.js?dev-sw', { scope: '/PalForge/', type: 'classic' })
