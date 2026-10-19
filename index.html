@@ -21,8 +21,22 @@
 
   <!-- Layout principal de la aplicación -->
   <div class="app">
+    <!-- Barra superior solo visible en móvil (hamburger) -->
+    <header class="app-header">
+      <button id="menu-toggle" class="app-header__menu-btn" type="button"
+        aria-label="Mostrar proyectos" aria-controls="sidebar" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          aria-hidden="true" focusable="false">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <span class="app-header__title">PalForge</span>
+    </header>
+
     <!-- Panel lateral de proyectos -->
-    <aside class="sidebar" aria-label="Proyectos de cría">
+    <aside id="sidebar" class="sidebar" aria-label="Proyectos de cría">
       <header class="brand">
         <h1 class="brand__title">Pal<span class="brand__accent">Forge</span></h1>
         <span class="brand__badge">Beta</span>
@@ -44,6 +58,9 @@
       </footer>
     </aside>
 
+    <!-- Fondo del cajón lateral en móvil -->
+    <div id="app-backdrop" class="app-backdrop" hidden></div>
+
     <!-- Área principal (Command Palette) -->
     <main class="workspace">
       <section class="search" aria-label="Buscador de Pals">
@@ -60,6 +77,20 @@
         <ul id="results" class="search__results" aria-label="Resultados de búsqueda">
           <!-- Resultados de búsqueda -->
         </ul>
+      </section>
+
+      <!-- Acción de instalación como PWA (solo si el navegador lo permite) -->
+      <section id="install-app" class="install" aria-label="Instalar PalForge" hidden>
+        <p class="install__hint">Instálala en tu dispositivo y úsala sin conexión.</p>
+        <button id="install-app-btn" class="button button--install" type="button">
+          <svg class="button__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" aria-hidden="true" focusable="false">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Instalar PalForge
+        </button>
       </section>
     </main>
   </div>

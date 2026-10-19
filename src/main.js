@@ -44,12 +44,28 @@ async function loadCatalog() {
   }
 }
 
+// API de la interfaz y evento de instalación retenido hasta que la UI exista.
+let ui = null;
+let pendingInstallPrompt = null;
+
+// El navegador decide si puede instalar la PWA; aquí sólo retenemos el evento
+// para que `ui.js` muestre su propio botón en lugar del diálogo nativo.
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  pendingInstallPrompt = event;
+  ui?.showInstallButton(event);
+});
+
 /** Arranca la aplicación. */
 async function bootstrap() {
   const { pals, gameVersion } = await loadCatalog();
   const fuse = createSearchIndex(pals);
 
-  initUI({ pals, fuse, gameVersion });
+  ui = initUI({ pals, fuse, gameVersion });
+
+  if (pendingInstallPrompt) {
+    ui.showInstallButton(pendingInstallPrompt);
+  }
 }
 
 bootstrap();

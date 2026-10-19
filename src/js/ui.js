@@ -58,6 +58,11 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     projectList: document.getElementById('project-list'),
     projectCount: document.getElementById('project-count'),
     gameVersion: document.getElementById('game-version'),
+    menuToggle: document.getElementById('menu-toggle'),
+    sidebar: document.getElementById('sidebar'),
+    backdrop: document.getElementById('app-backdrop'),
+    installAction: document.getElementById('install-app'),
+    installButton: document.getElementById('install-app-btn'),
   };
 
   const missingElements = Object.entries(dom)
@@ -72,6 +77,89 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
   let currentResults = [];
   let selectedIndex = -1;
+
+  // Evento `beforeinstallprompt` retenido hasta que el usuario pide instalar.
+  let installPrompt = null;
+
+  /* ------------------------------------------------------------------------
+     Cajón lateral (móvil)
+     ---------------------------------------------------------------------- */
+
+  function openSidebar() {
+    dom.sidebar.classList.add('sidebar--open');
+    dom.menuToggle.setAttribute('aria-expanded', 'true');
+    dom.backdrop.hidden = false;
+    dom.backdrop.classList.add('app-backdrop--visible');
+  }
+
+  function closeSidebar() {
+    dom.sidebar.classList.remove('sidebar--open');
+    dom.menuToggle.setAttribute('aria-expanded', 'false');
+    dom.backdrop.classList.remove('app-backdrop--visible');
+    dom.backdrop.hidden = true;
+  }
+
+  dom.menuToggle.addEventListener('click', () => {
+    const isOpen = dom.sidebar.classList.contains('sidebar--open');
+
+    if (isOpen) {
+      closeSidebar();
+    } else {
+      openSidebar();
+    }
+  });
+
+  dom.backdrop.addEventListener('click', closeSidebar);
+
+  /* ------------------------------------------------------------------------
+     Instalación como PWA
+     ---------------------------------------------------------------------- */
+
+  /** El botón sólo se muestra si el navegador ofreció instalar y no hay resultados. */
+  function updateInstallVisibility() {
+    const resultsActive =
+      dom.resultsList.classList.contains('search__results--active');
+
+    dom.installAction.hidden = !(installPrompt && !resultsActive);
+  }
+
+  /**
+   * Muestra el botón de instalación con el evento retenido por `main.js`.
+   *
+   * @param {Event} promptEvent Evento `beforeinstallprompt`.
+   */
+  function showInstallButton(promptEvent) {
+    installPrompt = promptEvent;
+    updateInstallVisibility();
+  }
+
+  /** Oculta el botón de instalación (app ya instalada o prompt descartado). */
+  function hideInstallButton() {
+    installPrompt = null;
+    updateInstallVisibility();
+  }
+
+  dom.installButton.addEventListener('click', async () => {
+    if (!installPrompt) return;
+
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+
+    // El evento sólo puede usarse una vez: se limpia tras la elección.
+    installPrompt = null;
+
+    if (outcome === 'accepted') {
+      toast.success('Instalando PalForge…');
+    }
+
+    updateInstallVisibility();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    hideInstallButton();
+    closeSidebar();
+    toast.success('PalForge instalado.');
+  });
 
   /* ------------------------------------------------------------------------
      Proyectos
@@ -306,6 +394,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     currentResults = results;
     selectedIndex = results.length > 0 ? 0 : -1;
     renderResults(dom.resultsList, results, openModal);
+    updateInstallVisibility();
   }
 
   function updateSelection(items) {
@@ -360,7 +449,10 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
   // Cerrar el palette al hacer clic fuera del buscador.
   document.addEventListener('click', (event) => {
-    if (!event.target.closest('.search')) hideResults(dom.resultsList);
+    if (!event.target.closest('.search')) {
+      hideResults(dom.resultsList);
+      updateInstallVisibility();
+    }
   });
 
   /* ------------------------------------------------------------------------
@@ -374,7 +466,10 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
   });
 
   window.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeModal();
+    if (event.key === 'Escape') {
+      closeModal();
+      closeSidebar();
+    }
 
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();
@@ -388,6 +483,16 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
   dom.gameVersion.textContent = gameVersion ? `v${gameVersion}` : '—';
   renderProjects();
+  updateInstallVisibility();
 
-  return { openModal, closeModal, renderProjects, showResults };
+  return {
+    openModal,
+    closeModal,
+    renderProjects,
+    showResults,
+    openSidebar,
+    closeSidebar,
+    showInstallButton,
+    hideInstallButton,
+  };
 }

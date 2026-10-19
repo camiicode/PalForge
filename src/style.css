@@ -102,6 +102,49 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
+   Bloque: app-header (barra superior en móvil)
+   -------------------------------------------------------------------------- */
+.app-header {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.app-header__menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.app-header__menu-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+.app-header__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: app-backdrop (fondo del cajón lateral en móvil)
+   -------------------------------------------------------------------------- */
+.app-backdrop {
+  display: none;
+}
+
+/* ----------------------------------------------------------------------------
    Bloque: brand (cabecera de marca)
    -------------------------------------------------------------------------- */
 .brand {
@@ -334,6 +377,50 @@ body {
 
 .button--secondary:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+.button--install {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  border: 0;
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.button--install:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.button__icon {
+  flex: none;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: install (invitación a instalar la PWA)
+   -------------------------------------------------------------------------- */
+.install {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: auto;
+  padding: 24px;
+  text-align: center;
+}
+
+.install[hidden] {
+  display: none;
+}
+
+.install__hint {
+  font-size: 0.9rem;
+  color: var(--text-muted);
 }
 
 /* ----------------------------------------------------------------------------
@@ -600,11 +687,12 @@ body {
 .passive-picker__list {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
 .passive-picker__option {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -780,4 +868,102 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* ----------------------------------------------------------------------------
+   Responsive: móvil (≤768px)
+
+   La app pasa a una sola columna: barra superior con menú hamburguesa,
+   buscador arriba, resultados en el medio y el cajón de proyectos deslizante.
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  body {
+    height: 100dvh;
+  }
+
+  .app {
+    flex-direction: column;
+    width: 100vw;
+    max-width: none;
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .app-header {
+    display: flex;
+    flex: none;
+  }
+
+  /* Cajón lateral deslizante */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 90;
+    width: min(85vw, 320px);
+    background: rgba(16, 19, 25, 0.98);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 8px 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar--open {
+    transform: none;
+  }
+
+  .app-backdrop--visible {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgba(0, 0, 0, 0.55);
+  }
+
+  .workspace {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+  }
+
+  .search__results {
+    max-height: min(60dvh, 400px);
+  }
+
+  /* El modal encaja en pantalla y su contenido hace scroll */
+  .modal {
+    padding: 12px;
+  }
+
+  .modal__content {
+    width: 100%;
+    max-width: 500px;
+    max-height: 88dvh;
+    overflow-y: auto;
+    padding: 24px 20px;
+  }
+
+  .toast-stack {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+  }
+}
+
+/* Listas en columna única en pantallas muy estrechas */
+@media (max-width: 420px) {
+  .modal__title {
+    font-size: 1.5rem;
+  }
+
+  .passive-picker__list {
+    grid-template-columns: 1fr;
+  }
+
+  .search__hint {
+    display: none;
+  }
 }
