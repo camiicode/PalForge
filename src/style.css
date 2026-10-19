@@ -477,11 +477,15 @@ body {
 
 .explore-card__img {
   width: 100%;
-  max-width: 120px;
+  height: auto;
+  max-height: 180px;
   aspect-ratio: 1 / 1;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.05);
+  display: block;
+  margin: 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .explore-card__title {

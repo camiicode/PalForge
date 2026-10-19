@@ -35,6 +35,19 @@ const INSTALL_HELP = Object.freeze({
 });
 
 /**
+ * Ruta de la imagen real de un Pal, derivada de `BASE_URL` para que funcione
+ * tanto en desarrollo local como en GitHub Pages (`/PalForge/pals/...`).
+ */
+function palImageUrl(pal, baseUrl) {
+  return `${baseUrl}pals/${pal.slug}.webp`;
+}
+
+/** Fallback de placeholder por nombre de Pal. */
+function placeholderFallback(name) {
+  return `https://placehold.co/150x150/181d24/f0b429?text=${encodeURIComponent(name)}`;
+}
+
+/**
  * Detecta si la app corre en iOS/iPadOS (donde no existe `beforeinstallprompt`).
  *
  * @returns {boolean}
@@ -215,17 +228,22 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
    */
   function renderExploreGrid() {
     const explorePals = pals.slice(0, EXPLORE_LIMIT);
+    const baseUrl = import.meta.env.BASE_URL ?? '/';
 
     dom.exploreGrid.innerHTML = explorePals
       .map((pal) => {
         const tags = (pal.elements ?? [])
           .map((element) => `<span class="element-tag">${escapeHtml(element)}</span>`)
           .join('');
-        const imageUrl = `https://placehold.co/150x150/181d24/f0b429?text=${encodeURIComponent(pal.name)}`;
+        const imageUrl = palImageUrl(pal, baseUrl);
 
         return `
           <button class="explore-card" type="button" aria-label="Ver detalles de ${escapeHtml(pal.name)}">
-            <img class="explore-card__img" src="${imageUrl}" alt="" loading="lazy" width="150" height="150" />
+            <img class="explore-card__img" src="${imageUrl}"
+              alt="imagen de ${escapeHtml(pal.name)}"
+              loading="lazy"
+              onerror="if(this.onerror){(this.onerror=null,this.src='${placeholderFallback(pal.name).replace(/'/g, "\\u0027")}',this.classList.add('explore-card__img--placeholder'))}"
+            />
             <span class="explore-card__title">${escapeHtml(pal.name)}</span>
             <span class="explore-card__elements">${tags}</span>
           </button>

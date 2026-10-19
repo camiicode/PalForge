@@ -67,6 +67,9 @@ export default defineConfig({
         navigateFallback: `${BASE_PATH}index.html`,
         cleanupOutdatedCaches: true,
       },
+      devOptions: {
+        enabled: true,
+      },
     }),
   ],
 });
