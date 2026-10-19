@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PalForge - Herramienta de Cría</title>
+  <meta name="description" content="Planifica tus proyectos de cría en Palworld con PalForge." />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <meta name="theme-color" content="#0a0c10" />
+  <!-- Fuentes de Google: Outfit para títulos, Inter para texto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <!-- Fondo animado (decorativo) -->
+  <div class="background-glow" aria-hidden="true"></div>
+
+  <!-- Layout principal de la aplicación -->
+  <div class="app">
+    <!-- Barra superior solo visible en móvil (hamburger) -->
+    <header class="app-header">
+      <button id="menu-toggle" class="app-header__menu-btn" type="button"
+        aria-label="Mostrar proyectos" aria-controls="sidebar" aria-expanded="false">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          aria-hidden="true" focusable="false">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <span class="app-header__title">PalForge</span>
+    </header>
+
+    <!-- Panel lateral de proyectos -->
+    <aside id="sidebar" class="sidebar" aria-label="Proyectos de cría">
+      <header class="brand">
+        <h1 class="brand__title">Pal<span class="brand__accent">Forge</span></h1>
+        <span class="brand__badge">Beta</span>
+      </header>
+
+      <section class="projects" aria-labelledby="projects-heading">
+        <header class="projects__header">
+          <h2 id="projects-heading" class="projects__heading">Mis Proyectos</h2>
+          <span id="project-count" class="projects__count">0</span>
+        </header>
+        <ul id="project-list" class="project-list">
+          <!-- Los proyectos se inyectan aquí -->
+        </ul>
+      </section>
+
+      <footer class="sidebar-footer">
+        <span class="sidebar-footer__label">Datos del juego</span>
+        <span id="game-version" class="sidebar-footer__value">—</span>
+      </footer>
+    </aside>
+
+    <!-- Fondo del cajón lateral en móvil -->
+    <div id="app-backdrop" class="app-backdrop" hidden></div>
+
+    <!-- Área principal (Command Palette) -->
+    <main class="workspace">
+      <section class="search" aria-label="Buscador de Pals">
+        <div class="search__box">
+          <svg class="search__icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input id="search" class="search__input" type="text" placeholder="Busca un Pal, elemento o rango..."
+            aria-label="Busca un Pal, elemento o rango" autocomplete="off" spellcheck="false" />
+          <div class="search__hint" aria-hidden="true">Ctrl K</div>
+        </div>
+        <ul id="results" class="search__results" aria-label="Resultados de búsqueda">
+          <!-- Resultados de búsqueda -->
+        </ul>
+      </section>
+
+      <!-- Acción de instalación como PWA (solo si el navegador lo permite) -->
+      <section id="install-app" class="install" aria-label="Instalar PalForge" hidden>
+        <p class="install__hint">Instálala en tu dispositivo y úsala sin conexión.</p>
+        <button id="install-app-btn" class="button button--install" type="button">
+          <svg class="button__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" aria-hidden="true" focusable="false">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Instalar PalForge
+        </button>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal para detalles del Pal -->
+  <div id="modal-overlay" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal__content">
+      <button id="close-modal" class="modal__close" type="button" aria-label="Cerrar detalles">&times;</button>
+      <div id="modal-body" class="modal__body">
+        <!-- Contenido inyectado por JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Punto de entrada de la aplicación (Fuse.js se importa vía ES modules) -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

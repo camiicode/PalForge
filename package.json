@@ -1,0 +1,22 @@
+{
+  "name": "palforge",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Planifica tus proyectos de cría en Palworld con PalForge.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "fuse.js": "^7.5.0"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "vite": "^8.3.4",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.0.5"
+  }
+}
