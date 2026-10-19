@@ -9,9 +9,11 @@ import {
   addEgg,
   addProject,
   calculateCumulativeProbability,
+  deleteProject,
   getProjects,
   MAX_DESIRED_PASSIVES,
   PASSIVE_OPTIONS,
+  restoreProject,
 } from './projects.js';
 import {
   hideResults,
@@ -19,6 +21,7 @@ import {
   renderResults,
   searchPals,
 } from './search.js';
+import { toast } from './toast.js';
 import { escapeHtml } from './utils.js';
 
 /**
@@ -96,7 +99,13 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
         return `
           <li class="project-list__item">
-            <h3 class="project-list__title">${escapeHtml(project.targetName)}</h3>
+            <div class="project-list__header">
+              <h3 class="project-list__title">${escapeHtml(project.targetName)}</h3>
+              <button class="project-list__delete-btn" type="button"
+                data-id="${escapeHtml(project.id)}"
+                aria-label="Eliminar proyecto ${escapeHtml(project.targetName)}"
+                title="Eliminar proyecto">🗑️</button>
+            </div>
             <div class="project-list__meta">
               <span>Huevos: ${project.eggsHatched}</span>
               <span>${percent}% Prob.</span>
@@ -119,6 +128,43 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
         addEgg(button.dataset.id);
         renderProjects();
       });
+    });
+
+    dom.projectList
+      .querySelectorAll('.project-list__delete-btn')
+      .forEach((button) => {
+        button.addEventListener('click', () =>
+          deleteProjectWithUndo(button.dataset.id),
+        );
+      });
+  }
+
+  /**
+   * Elimina un proyecto y ofrece restaurarlo desde el toast.
+   *
+   * @param {string} projectId
+   */
+  function deleteProjectWithUndo(projectId) {
+    const deleted = deleteProject(projectId);
+
+    if (!deleted) {
+      toast.error('No se pudo eliminar el proyecto.');
+      return;
+    }
+
+    renderProjects();
+
+    toast.info('Proyecto eliminado', {
+      hasUndo: true,
+      onUndo: () => {
+        restoreProject(
+          deleted.project,
+          globalThis.localStorage,
+          deleted.index,
+        );
+        renderProjects();
+        toast.success('Proyecto restaurado');
+      },
     });
   }
 
@@ -233,13 +279,18 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
       const result = addProject(pal, globalThis.localStorage, desiredPassives);
 
-      if (!result.added && result.reason === 'duplicate') {
-        alert('Este Pal ya está en tus proyectos.');
+      if (!result.added) {
+        toast.error(
+          result.reason === 'duplicate'
+            ? 'Este Pal ya está en tus proyectos.'
+            : 'No se pudo añadir el proyecto.',
+        );
         return;
       }
 
       renderProjects();
       closeModal();
+      toast.success(`${pal.name} añadido a tus proyectos.`);
     });
   }
 

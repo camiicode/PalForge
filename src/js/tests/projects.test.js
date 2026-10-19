@@ -5,7 +5,9 @@ import {
   addEgg,
   addProject,
   calculateCumulativeProbability,
+  deleteProject,
   getProjects,
+  restoreProject,
   saveProjects,
 } from '../projects.js';
 
@@ -235,5 +237,68 @@ describe('addEgg', () => {
 
     expect(addEgg('missing-id', storage)).toBeNull();
     expect(getProjects(storage)).toEqual(before);
+  });
+});
+
+describe('deleteProject and restoreProject', () => {
+  let storage;
+
+  beforeEach(() => {
+    storage = createMemoryStorage();
+  });
+
+  it('elimina un proyecto del almacenamiento y devuelve su posición', () => {
+    const first = addProject(CHARMANDER, storage).project;
+    const second = addProject(SQUIRTLE, storage).project;
+
+    const deleted = deleteProject(first.id, storage);
+
+    expect(deleted).toEqual({ project: first, index: 0 });
+    expect(getProjects(storage)).toHaveLength(1);
+    expect(getProjects(storage)[0].id).toBe(second.id);
+  });
+
+  it('devuelve null y no modifica el almacenamiento si el id no existe', () => {
+    addProject(CHARMANDER, storage);
+    const before = getProjects(storage);
+
+    expect(deleteProject('missing-id', storage)).toBeNull();
+    expect(getProjects(storage)).toEqual(before);
+  });
+
+  it('restaura un proyecto eliminado en su posición original', () => {
+    const first = addProject(CHARMANDER, storage, ['Musclehead']).project;
+    const second = addProject(SQUIRTLE, storage).project;
+
+    const deleted = deleteProject(second.id, storage);
+    restoreProject(deleted.project, storage, deleted.index);
+
+    const restored = getProjects(storage);
+
+    expect(restored.map((project) => project.targetSlug)).toEqual([
+      'charmander',
+      'squirtle',
+    ]);
+    expect(restored[1]).toEqual(second);
+    expect(first.desiredPassives).toEqual(['Musclehead']);
+  });
+
+  it('no duplica un proyecto que ya está en la lista', () => {
+    const project = addProject(CHARMANDER, storage).project;
+
+    restoreProject(project, storage);
+
+    expect(getProjects(storage)).toHaveLength(1);
+  });
+
+  it('añade al final cuando el índice guardado no es válido', () => {
+    const first = addProject(CHARMANDER, storage).project;
+    const deleted = deleteProject(first.id, storage);
+    addProject(SQUIRTLE, storage);
+
+    restoreProject(deleted.project, storage, 99);
+
+    expect(getProjects(storage)).toHaveLength(2);
+    expect(getProjects(storage)[1].targetSlug).toBe('charmander');
   });
 });

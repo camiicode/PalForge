@@ -76,6 +76,21 @@ export function calculateCumulativeProbability(
 }
 
 /**
+ * Genera un identificador único para un proyecto.
+ *
+ * `Date.now()` solo no basta: dos proyectos añadidos en el mismo milisegundo
+ * compartirían id y las acciones de borrar/deshacer afectarían al equivocado.
+ *
+ * @returns {string}
+ */
+function createProjectId() {
+  return (
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+  );
+}
+
+/**
  * Lee los proyectos guardados.
  *
  * @param {Storage} [storage=globalThis.localStorage] Almacenamiento a usar.
@@ -126,7 +141,7 @@ export function addProject(
     : [];
 
   const project = {
-    id: Date.now().toString(),
+    id: createProjectId(),
     targetSlug: pal.slug,
     targetName: pal.name,
     eggsHatched: 0,
@@ -161,4 +176,59 @@ export function addEgg(projectId, storage = globalThis.localStorage) {
   saveProjects(projects, storage);
 
   return updatedProject;
+}
+
+/**
+ * Elimina un proyecto del almacenamiento.
+ *
+ * Devuelve el proyecto y su índice para que la UI pueda ofrecer un «Deshacer»
+ * que lo restaure exactamente donde estaba.
+ *
+ * @param {string} projectId
+ * @param {Storage} [storage=globalThis.localStorage]
+ * @returns {{ project: object, index: number }|null} Datos para deshacer, o `null`.
+ */
+export function deleteProject(projectId, storage = globalThis.localStorage) {
+  const projects = getProjects(storage);
+  const index = projects.findIndex((project) => project.id === projectId);
+
+  if (index === -1) return null;
+
+  const [project] = projects.splice(index, 1);
+  saveProjects(projects, storage);
+
+  return { project, index };
+}
+
+/**
+ * Restaura un proyecto eliminado.
+ *
+ * Si el proyecto ya existe no se duplica. Si el índice ya no es válido se
+ * añade al final para no perder el dato.
+ *
+ * @param {object} project
+ * @param {Storage} [storage=globalThis.localStorage]
+ * @param {number|null} [index=null] Posición original devuelta por `deleteProject`.
+ * @returns {Array<object>} Lista actualizada.
+ */
+export function restoreProject(
+  project,
+  storage = globalThis.localStorage,
+  index = null,
+) {
+  const projects = getProjects(storage);
+
+  if (projects.some((candidate) => candidate.id === project.id)) {
+    return projects;
+  }
+
+  const insertionIndex =
+    Number.isInteger(index) && index >= 0 && index <= projects.length
+      ? index
+      : projects.length;
+
+  projects.splice(insertionIndex, 0, project);
+  saveProjects(projects, storage);
+
+  return projects;
 }
