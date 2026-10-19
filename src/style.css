@@ -1,0 +1,505 @@
+/* ============================================================================
+   PalForge — Hoja de estilos principal
+   Metodología: BEM (bloque__elemento--modificador)
+   ========================================================================== */
+
+/* ----------------------------------------------------------------------------
+   Tokens de diseño
+   -------------------------------------------------------------------------- */
+:root {
+  --bg-base: #0a0c10;
+  --bg-panel: rgba(22, 27, 34, 0.7);
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-glow: rgba(59, 130, 246, 0.4);
+  --text-main: #f0f6fc;
+  --text-muted: #8b949e;
+  --font-ui: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+}
+
+/* ----------------------------------------------------------------------------
+   Reset y base
+   -------------------------------------------------------------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: background-glow (fondo decorativo)
+   -------------------------------------------------------------------------- */
+.background-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60vw;
+  height: 60vh;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  filter: blur(100px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: app (contenedor principal)
+   -------------------------------------------------------------------------- */
+.app {
+  display: flex;
+  width: 95vw;
+  max-width: 1200px;
+  height: 85vh;
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: sidebar
+   -------------------------------------------------------------------------- */
+.sidebar {
+  width: 320px;
+  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: brand (cabecera de marca)
+   -------------------------------------------------------------------------- */
+.brand {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand__title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: -0.5px;
+}
+
+.brand__accent {
+  color: var(--accent);
+}
+
+.brand__badge {
+  font-size: 0.7rem;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: projects (panel de proyectos)
+   -------------------------------------------------------------------------- */
+.projects {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.projects__header {
+  padding: 20px 24px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.projects__heading {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.projects__count {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: project-list (listado de proyectos)
+   -------------------------------------------------------------------------- */
+.project-list {
+  list-style: none;
+  padding: 0 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.project-list__item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.project-list__item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border);
+}
+
+.project-list__title {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+.project-list__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.project-list__progress {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.project-list__progress-fill {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.project-list__empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: button
+   -------------------------------------------------------------------------- */
+.button {
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.button--add-egg {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.button--add-egg:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.button--primary {
+  width: 100%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 16px;
+}
+
+.button--primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: workspace (área principal)
+   -------------------------------------------------------------------------- */
+.workspace {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: search (command palette)
+   -------------------------------------------------------------------------- */
+.search {
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+  position: relative;
+}
+
+.search__box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 0 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.search__box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+.search__icon {
+  color: var(--text-muted);
+}
+
+.search__input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 20px 16px;
+  font-size: 1.1rem;
+  color: var(--text-main);
+  outline: none;
+  font-family: var(--font-ui);
+}
+
+.search__input::placeholder {
+  color: var(--text-muted);
+}
+
+.search__hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.search__results {
+  list-style: none;
+  margin-top: 16px;
+  background: rgba(22, 27, 34, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  max-height: 400px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+  display: none;
+}
+
+/* Modificador: lista de resultados visible */
+.search__results--active {
+  display: block;
+}
+
+.search__result {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  transition: background 0.1s;
+}
+
+.search__result:last-child {
+  border-bottom: none;
+}
+
+.search__result:hover,
+.search__result--selected {
+  background: rgba(59, 130, 246, 0.15);
+  border-left: 3px solid var(--accent);
+  padding-left: 17px;
+}
+
+.search__result-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.search__result-elements {
+  display: flex;
+  gap: 8px;
+}
+
+.search__empty {
+  padding: 16px 20px;
+  color: var(--text-muted);
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: element-tag
+   -------------------------------------------------------------------------- */
+.element-tag {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: modal (detalles del Pal)
+   -------------------------------------------------------------------------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  opacity: 1;
+  transition: opacity 0.2s;
+}
+
+/* Modificador: modal oculto */
+.modal--hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.modal__content {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  width: 90%;
+  max-width: 500px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transform: translateY(0);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal--hidden .modal__content {
+  transform: translateY(20px);
+}
+
+.modal__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: var(--text-main);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.modal__close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal__title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.modal__elements {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.modal__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: stat
+   -------------------------------------------------------------------------- */
+.stat {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.stat__label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.stat__value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------------------------
+   Scrollbars
+   -------------------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
