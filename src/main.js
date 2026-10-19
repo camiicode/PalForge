@@ -2,7 +2,7 @@
  * PalForge — Punto de entrada.
  *
  * Se encarga únicamente del arranque:
- *  1. Cargar el catálogo desde `public/data.json` (servido en `/data.json`).
+ *  1. Cargar el catálogo desde `public/data.json`.
  *  2. Construir el índice de búsqueda.
  *  3. Inicializar la interfaz.
  */
@@ -12,7 +12,10 @@ import './style.css';
 import { createSearchIndex } from './js/search.js';
 import { initUI } from './js/ui.js';
 
-const DATA_URL = '/data.json';
+// `import.meta.env.BASE_URL` incluye la ruta base de Vite (`/palforge/` en
+// producción para GitHub Pages, `/` en los tests), así que el catálogo se sirve
+// siempre junto a la app y no desde la raíz del dominio.
+const DATA_URL = `${import.meta.env.BASE_URL}data.json`;
 
 /**
  * Carga el catálogo de Pals y su versión de datos.
