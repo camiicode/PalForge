@@ -2,10 +2,13 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 /**
- * Ruta base del sitio en GitHub Pages: `https://<usuario>.github.io/palforge/`.
- * Todas las rutas del manifest y del service worker derivan de aquí.
+ * Ruta base del sitio en GitHub Pages: `https://camiicode.github.io/PalForge/`.
+ * El nombre del repositorio distingue mayúsculas, así que la ruta debe
+ * respetar exactamente la capitalización `PalForge` (GitHub Pages es sensible
+ * a mayúsculas). Todas las rutas del manifest y del service worker derivan
+ * de aquí.
  */
-const BASE_PATH = '/palforge/';
+const BASE_PATH = '/PalForge/';
 
 /**
  * Configuración de Vite.
