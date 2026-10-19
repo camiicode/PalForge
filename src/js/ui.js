@@ -24,6 +24,41 @@ import {
 import { toast } from './toast.js';
 import { escapeHtml } from './utils.js';
 
+/** Número de Pals que muestra la rejilla de exploración. */
+const EXPLORE_LIMIT = 12;
+
+/** Mensajes de ayuda para instalar manualmente cuando no hay prompt nativo. */
+const INSTALL_HELP = Object.freeze({
+  ios:
+    "Para instalar en iOS: toca el botón Compartir y selecciona 'Añadir a pantalla de inicio'.",
+  desktop: 'Usa el icono de instalar en la barra de direcciones de tu navegador.',
+});
+
+/**
+ * Detecta si la app corre en iOS/iPadOS (donde no existe `beforeinstallprompt`).
+ *
+ * @returns {boolean}
+ */
+function isIOS() {
+  return (
+    /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    // iPadOS moderno se identifica como Mac, pero soporta touch.
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+  );
+}
+
+/**
+ * Detecta si la app ya está instalada (ejecutándose como PWA standalone).
+ *
+ * @returns {boolean}
+ */
+function isStandalone() {
+  return (
+    window.matchMedia?.('(display-mode: standalone)')?.matches === true ||
+    navigator.standalone === true // iOS Safari
+  );
+}
+
 /**
  * Pinta las pasivas objetivo de un proyecto.
  *
@@ -63,6 +98,8 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     backdrop: document.getElementById('app-backdrop'),
     installAction: document.getElementById('install-app'),
     installButton: document.getElementById('install-app-btn'),
+    exploreSection: document.getElementById('explore'),
+    exploreGrid: document.getElementById('explore-grid'),
   };
 
   const missingElements = Object.entries(dom)
@@ -115,12 +152,12 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
      Instalación como PWA
      ---------------------------------------------------------------------- */
 
-  /** El botón sólo se muestra si el navegador ofreció instalar y no hay resultados. */
+  /**
+   * El botón permanece visible mientras la app no esté instalada; sin evento
+   * nativo (`beforeinstallprompt`) se explica cómo instalarla manualmente.
+   */
   function updateInstallVisibility() {
-    const resultsActive =
-      dom.resultsList.classList.contains('search__results--active');
-
-    dom.installAction.hidden = !(installPrompt && !resultsActive);
+    dom.installAction.hidden = isStandalone();
   }
 
   /**
@@ -140,7 +177,12 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
   }
 
   dom.installButton.addEventListener('click', async () => {
-    if (!installPrompt) return;
+    // Sin evento nativo (iOS Safari, app ya instalada, navegador sin soporte):
+    // se muestra ayuda para instalar manualmente.
+    if (!installPrompt) {
+      toast.info(isIOS() ? INSTALL_HELP.ios : INSTALL_HELP.desktop);
+      return;
+    }
 
     installPrompt.prompt();
     const { outcome } = await installPrompt.userChoice;
@@ -150,16 +192,60 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
     if (outcome === 'accepted') {
       toast.success('Instalando PalForge…');
+      updateInstallVisibility();
     }
-
-    updateInstallVisibility();
   });
 
   window.addEventListener('appinstalled', () => {
-    hideInstallButton();
+    installPrompt = null;
     closeSidebar();
+    updateInstallVisibility();
     toast.success('PalForge instalado.');
   });
+
+  /* ------------------------------------------------------------------------
+     Rejilla de exploración (estado vacío del buscador)
+     ---------------------------------------------------------------------- */
+
+  /**
+   * Pinta la rejilla "Explorar Pals" con los primeros Pals del catálogo.
+   *
+   * Cada tarjeta abre el mismo modal de detalles que los resultados de
+   * búsqueda. Las imágenes son placeholders hasta existir arte oficial.
+   */
+  function renderExploreGrid() {
+    const explorePals = pals.slice(0, EXPLORE_LIMIT);
+
+    dom.exploreGrid.innerHTML = explorePals
+      .map((pal) => {
+        const tags = (pal.elements ?? [])
+          .map((element) => `<span class="element-tag">${escapeHtml(element)}</span>`)
+          .join('');
+        const imageUrl = `https://placehold.co/150x150/181d24/f0b429?text=${encodeURIComponent(pal.name)}`;
+
+        return `
+          <button class="explore-card" type="button" aria-label="Ver detalles de ${escapeHtml(pal.name)}">
+            <img class="explore-card__img" src="${imageUrl}" alt="" loading="lazy" width="150" height="150" />
+            <span class="explore-card__title">${escapeHtml(pal.name)}</span>
+            <span class="explore-card__elements">${tags}</span>
+          </button>
+        `;
+      })
+      .join('');
+
+    dom.exploreGrid.querySelectorAll('.explore-card').forEach((card, index) => {
+      card.addEventListener('click', () => openModal(explorePals[index]));
+    });
+  }
+
+  /** Muestra la rejilla solo sin resultados activos y con el buscador vacío. */
+  function updateExploreVisibility() {
+    const resultsActive =
+      dom.resultsList.classList.contains('search__results--active');
+    const queryEmpty = dom.searchInput.value.trim() === '';
+
+    dom.exploreSection.hidden = resultsActive || !queryEmpty;
+  }
 
   /* ------------------------------------------------------------------------
      Proyectos
@@ -290,6 +376,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     dom.modal.classList.remove('modal--hidden');
     dom.searchInput.value = '';
     hideResults(dom.resultsList);
+    updateExploreVisibility();
 
     document.getElementById('btn-add-project').addEventListener('click', () => {
       showPassivePicker(pal);
@@ -394,7 +481,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     currentResults = results;
     selectedIndex = results.length > 0 ? 0 : -1;
     renderResults(dom.resultsList, results, openModal);
-    updateInstallVisibility();
+    updateExploreVisibility();
   }
 
   function updateSelection(items) {
@@ -444,6 +531,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
       if (pal) openModal(pal);
     } else if (event.key === 'Escape') {
       hideResults(dom.resultsList);
+      updateExploreVisibility();
     }
   });
 
@@ -451,7 +539,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
   document.addEventListener('click', (event) => {
     if (!event.target.closest('.search')) {
       hideResults(dom.resultsList);
-      updateInstallVisibility();
+      updateExploreVisibility();
     }
   });
 
@@ -483,6 +571,8 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
   dom.gameVersion.textContent = gameVersion ? `v${gameVersion}` : '—';
   renderProjects();
+  renderExploreGrid();
+  updateExploreVisibility();
   updateInstallVisibility();
 
   return {
