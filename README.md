@@ -68,7 +68,15 @@ npm run preview
 ```
 
 El service worker se registra automáticamente y actualiza la app al publicar una
-nueva versión.
+nueva versión. Cuando el navegador ofrece instalarla, aparece el botón
+«Instalar PalForge» en el centro del buscador.
+
+## Responsive
+
+En pantallas de 768px o menos la app pasa a una sola columna: barra superior con
+menú hamburguesa, buscador arriba y el panel de proyectos como cajón lateral
+deslizable. El modal de selección de pasivas cabe en pantalla y su contenido hace
+scroll.
 
 ## Despliegue
 
