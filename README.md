@@ -30,6 +30,22 @@ npm run test
 
 Vitest ejecuta las suites de `src/js/tests/` en un entorno jsdom. En una terminal interactiva queda en modo watch; para una ejecución única usa `npm run test -- --run`.
 
+## Probabilidad de cría
+
+La probabilidad acumulada de obtener las pasivas deseadas tras `n` huevos es
+`1 - (1 - p)^n`, donde `p` depende de cuántas pasivas se persigan:
+
+| Pasivas objetivo | `p` por huevo |
+| ---------------- | ------------- |
+| 1                | 40%           |
+| 2                | 25%           |
+| 3                | 12%           |
+| 4                | 10%           |
+| 0 (sin pasivas)  | 10%           |
+
+La versión de los datos (`game_version` en `public/data.json`) se muestra en el
+pie de la barra lateral.
+
 ## Producción
 
 ```bash
