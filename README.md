@@ -21,7 +21,7 @@ npm install
 npm run dev
 ```
 
-La aplicación queda disponible en `http://localhost:5173/palforge/`.
+La aplicación queda disponible en `http://localhost:5173/PalForge/`.
 
 ## Pruebas
 
@@ -68,8 +68,16 @@ npm run preview
 ```
 
 El service worker se registra automáticamente y actualiza la app al publicar una
-nueva versión. Cuando el navegador ofrece instalarla, aparece el botón
-«Instalar PalForge» en el centro del buscador.
+nueva versión. El botón «Instalar PalForge» permanece visible bajo el buscador
+mientras la app no esté instalada: si el navegador emite `beforeinstallprompt`
+se lanza el diálogo nativo; en iOS Safari u otros casos sin soporte, se muestra
+un toast con las instrucciones de instalación manual. En modo standalone el
+botón desaparece.
+
+Cuando el buscador está vacío y no hay resultados, la zona principal muestra la
+rejilla «Explorar Pals» con los primeros Pals del catálogo; cada tarjeta abre el
+detalle del Pal. Las miniaturas usan placeholders de `placehold.co` hasta contar
+con arte oficial.
 
 ## Responsive
 
@@ -83,8 +91,9 @@ scroll.
 El workflow `.github/workflows/deploy.yml` despliega la app en GitHub Pages con
 cada push a `master`: instala dependencias con `npm ci`, ejecuta los tests
 (`npm run test`), construye `dist/` y lo publica. La app se sirve en
-`https://<usuario>.github.io/palforge/`, por lo que Vite usa
-`base: '/palforge/'` y el catálogo se sirve desde `/palforge/data.json`.
+`https://camiicode.github.io/PalForge/`. GitHub Pages distingue mayúsculas, por
+lo que Vite usa `base: '/PalForge/'` (exactamente igual que el nombre del
+repositorio) y el catálogo se sirve desde `/PalForge/data.json`.
 
 ## Estructura
 
