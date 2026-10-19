@@ -1,12 +1,13 @@
 # PalForge
 
-Herramienta para planificar proyectos de cría en Palworld. Busca Pals por nombre o elemento, consulta su rango de cría y registra los huevos eclosionados de cada proyecto.
+Herramienta para planificar proyectos de cría en Palworld. Busca Pals por nombre o elemento, consulta su rango de cría, registra los huevos eclosionados y elimina proyectos con opción de deshacer.
 
 ## Stack
 
 - [Vite](https://vite.dev/) (Vanilla JS)
 - [Fuse.js](https://www.fusejs.io/) para búsqueda difusa
 - [Vitest](https://vitest.dev/) + jsdom para pruebas unitarias
+- [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) para instalación y offline
 - HTML semántico + CSS con metodología BEM
 
 ## Requisitos
@@ -55,21 +56,40 @@ npm run preview
 
 El resultado se genera en `dist/`.
 
+## PWA
+
+`vite-plugin-pwa` genera `manifest.webmanifest`, los iconos instalables y un
+service worker que precachea la app y `data.json`. La instalación debe probarse
+sobre `localhost` o HTTPS con el build de producción:
+
+```bash
+npm run build
+npm run preview
+```
+
+El service worker se registra automáticamente y actualiza la app al publicar una
+nueva versión.
+
 ## Estructura
 
 ```
 .
 ├── index.html              # Documento raíz y punto de entrada de Vite
+├── vite.config.js          # Configuración de Vite y PWA
 ├── vitest.config.js        # Entorno jsdom y patrón de tests
 ├── public/
-│   └── data.json           # Catálogo de Pals, servido en /data.json
+│   ├── data.json           # Catálogo de Pals, servido en /data.json
+│   ├── favicon.png         # Icono original
+│   ├── icon-192.png        # Icono PWA
+│   └── icon-512.png        # Icono PWA
 ├── src/
 │   ├── main.js             # Arranque: carga datos e inicializa los módulos
 │   ├── style.css           # Estilos con clases BEM
 │   └── js/
-│       ├── projects.js     # Persistencia y probabilidad acumulada
+│       ├── projects.js     # Persistencia, borrado/restauración y probabilidad
 │       ├── search.js       # Índice Fuse, búsqueda y render de resultados
 │       ├── ui.js           # Eventos del DOM, modal y proyectos
+│       ├── toast.js        # Notificaciones flotantes con acción de deshacer
 │       ├── utils.js        # Utilidades compartidas (escapeHtml)
 │       └── tests/
 │           ├── projects.test.js
