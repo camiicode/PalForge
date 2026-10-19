@@ -15,14 +15,14 @@ import { initUI } from './js/ui.js';
 const DATA_URL = '/data.json';
 
 /**
- * Carga el catálogo de Pals.
+ * Carga el catálogo de Pals y su versión de datos.
  *
- * Si el archivo no está disponible se registra el error y se devuelve una
- * lista vacía: la interfaz sigue siendo usable sin resultados.
+ * Si el archivo no está disponible se registra el error y se devuelve un
+ * catálogo vacío: la interfaz sigue siendo usable sin resultados.
  *
- * @returns {Promise<Array<object>>}
+ * @returns {Promise<{ pals: Array<object>, gameVersion: string|null }>}
  */
-async function loadPals() {
+async function loadCatalog() {
   try {
     const response = await fetch(DATA_URL);
     if (!response.ok) {
@@ -30,19 +30,23 @@ async function loadPals() {
     }
 
     const data = await response.json();
-    return Array.isArray(data.pals) ? data.pals : [];
+    const pals = Array.isArray(data.pals) ? data.pals : [];
+    const gameVersion =
+      typeof data.game_version === 'string' ? data.game_version : null;
+
+    return { pals, gameVersion };
   } catch (error) {
     console.error('Error al cargar el catálogo de Pals:', error);
-    return [];
+    return { pals: [], gameVersion: null };
   }
 }
 
 /** Arranca la aplicación. */
 async function bootstrap() {
-  const pals = await loadPals();
+  const { pals, gameVersion } = await loadCatalog();
   const fuse = createSearchIndex(pals);
 
-  initUI({ pals, fuse });
+  initUI({ pals, fuse, gameVersion });
 }
 
 bootstrap();

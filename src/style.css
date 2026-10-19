@@ -84,6 +84,24 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
+   Bloque: sidebar-footer (versión de datos)
+   -------------------------------------------------------------------------- */
+.sidebar-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.sidebar-footer__value {
+  color: var(--accent-hover);
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------------------------------
    Bloque: brand (cabecera de marca)
    -------------------------------------------------------------------------- */
 .brand {
@@ -184,6 +202,26 @@ body {
   margin-bottom: 12px;
 }
 
+.project-list__passives {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: passive-tag
+   -------------------------------------------------------------------------- */
+.passive-tag {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent-hover);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
 .project-list__progress {
   height: 4px;
   background: rgba(255, 255, 255, 0.1);
@@ -247,6 +285,21 @@ body {
   background: var(--accent-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.button--secondary {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.button--secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* ----------------------------------------------------------------------------
@@ -448,6 +501,11 @@ body {
   margin-bottom: 8px;
 }
 
+.modal__subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
 .modal__elements {
   display: flex;
   gap: 8px;
@@ -482,6 +540,85 @@ body {
 .stat__value {
   font-size: 1.1rem;
   font-weight: 600;
+}
+
+/* ----------------------------------------------------------------------------
+   Bloque: passive-picker (selección de pasivas objetivo)
+   -------------------------------------------------------------------------- */
+.passive-picker {
+  margin-top: 20px;
+}
+
+.passive-picker__fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.passive-picker__legend {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.passive-picker__list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.passive-picker__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.passive-picker__option:hover {
+  border-color: var(--accent);
+}
+
+.passive-picker__option:has(.passive-picker__checkbox:checked) {
+  border-color: var(--accent);
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.passive-picker__option:has(.passive-picker__checkbox:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.passive-picker__checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  flex: none;
+}
+
+.passive-picker__hint {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.passive-picker__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.passive-picker__actions .button {
+  flex: 1;
+  margin-top: 0;
 }
 
 /* ----------------------------------------------------------------------------

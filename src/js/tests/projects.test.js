@@ -59,9 +59,34 @@ describe('calculateCumulativeProbability', () => {
     expect(calculateCumulativeProbability(10_000)).toBeGreaterThan(99.9);
   });
 
-  it('acepta una probabilidad por huevo personalizada', () => {
+  it.each([
+    [1, 40],
+    [2, 25],
+    [3, 12],
+    [4, 10],
+  ])(
+    'usa %i pasiva(s) deseadas con una probabilidad base del %i%%',
+    (passiveCount, expectedPercent) => {
+      expect(calculateCumulativeProbability(1, passiveCount)).toBeCloseTo(
+        expectedPercent,
+        10,
+      );
+    },
+  );
+
+  it('usa el 10% por defecto cuando no hay pasivas seleccionadas', () => {
+    expect(calculateCumulativeProbability(1, 0)).toBeCloseTo(10, 10);
+    expect(calculateCumulativeProbability(1)).toBeCloseTo(10, 10);
+  });
+
+  it('usa el 10% para recuentos de pasivas fuera de la tabla', () => {
+    expect(calculateCumulativeProbability(1, 5)).toBeCloseTo(10, 10);
+    expect(calculateCumulativeProbability(1, 3.5)).toBeCloseTo(10, 10);
+  });
+
+  it('acumula la probabilidad de 2 pasivas en varios huevos', () => {
     // 1 - 0.75^2 = 0.4375 -> 43.75%
-    expect(calculateCumulativeProbability(2, 0.25)).toBeCloseTo(43.75, 10);
+    expect(calculateCumulativeProbability(2, 2)).toBeCloseTo(43.75, 10);
   });
 
   it('devuelve 0 para entradas inválidas o negativas', () => {
@@ -118,7 +143,30 @@ describe('addProject', () => {
       eggsHatched: 0,
     });
     expect(result.project.id).toEqual(expect.any(String));
+    expect(result.project.desiredPassives).toEqual([]);
     expect(getProjects(storage)).toHaveLength(1);
+  });
+
+  it('guarda las pasivas deseadas seleccionadas', () => {
+    const desiredPassives = ['Musclehead', 'Ferocious'];
+
+    const result = addProject(CHARMANDER, storage, desiredPassives);
+
+    expect(result.project.desiredPassives).toEqual(desiredPassives);
+    expect(getProjects(storage)[0].desiredPassives).toEqual(desiredPassives);
+  });
+
+  it('limita a 4 pasivas y elimina duplicados', () => {
+    const result = addProject(CHARMANDER, storage, [
+      'A',
+      'A',
+      'B',
+      'C',
+      'D',
+      'E',
+    ]);
+
+    expect(result.project.desiredPassives).toEqual(['A', 'B', 'C', 'D']);
   });
 
   it('rechaza duplicados sin modificar el almacenamiento', () => {
@@ -158,6 +206,15 @@ describe('addEgg', () => {
 
     addEgg(project.id, storage);
     expect(getProjects(storage)[0].eggsHatched).toBe(2);
+  });
+
+  it('conserva las pasivas deseadas al registrar huevos', () => {
+    const { project } = addProject(CHARMANDER, storage, ['Musclehead']);
+
+    const updated = addEgg(project.id, storage);
+
+    expect(updated.desiredPassives).toEqual(['Musclehead']);
+    expect(getProjects(storage)[0].desiredPassives).toEqual(['Musclehead']);
   });
 
   it('no afecta a otros proyectos', () => {
