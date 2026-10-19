@@ -21,7 +21,7 @@ npm install
 npm run dev
 ```
 
-La aplicación queda disponible en `http://localhost:5173/`.
+La aplicación queda disponible en `http://localhost:5173/palforge/`.
 
 ## Pruebas
 
@@ -69,6 +69,14 @@ npm run preview
 
 El service worker se registra automáticamente y actualiza la app al publicar una
 nueva versión.
+
+## Despliegue
+
+El workflow `.github/workflows/deploy.yml` despliega la app en GitHub Pages con
+cada push a `master`: instala dependencias con `npm ci`, ejecuta los tests
+(`npm run test`), construye `dist/` y lo publica. La app se sirve en
+`https://<usuario>.github.io/palforge/`, por lo que Vite usa
+`base: '/palforge/'` y el catálogo se sirve desde `/palforge/data.json`.
 
 ## Estructura
 
