@@ -418,7 +418,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
         const { specialCombos, standardPairs, totalPairs } = findBreedingPairs(pal.slug, pals);
         const sections = renderBreedingPairsSections(specialCombos, standardPairs, {
           perPage: 10,
-          page: 0,
+          page: currentPage,
           totalPairs,
         });
         breedingResults.innerHTML = sections.join('');
@@ -457,9 +457,9 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
         });
         // =================
 
-        // El ID del botón lleva la página objetivo: btn-breeding-pairs-more-${page + 1}
-        // Extraer el número de página (1-indexado) y convertirlo a 0-indexado.
-        const pageFromId = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10) - 1;
+        // El ID del botón lleva la página 0-indexada directamente (no +1)
+        // Extraer el número de página sin restar 1.
+        const pageFromId = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10);
         currentPage = pageFromId;
 
         const { specialCombos, standardPairs, totalPairs: total } = findBreedingPairs(pal.slug, pals, null, {
@@ -527,10 +527,11 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
           ? 'Mostrar más combinaciones'
           : `Mostrar más combinaciones (${perPage} más)`;
 
+        // Usar la página 0-indexada directamente en el ID (no +1)
         const loadMoreButton = `
           <div class="breeding-pairs__load-more__wrapper">
             <button class="breeding-pairs__load-more button button--secondary"
-              id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
+              id="btn-breeding-pairs-more-${page}" type="button">${label}</button>
           </div>
         `;
         parts.push(loadMoreButton);
