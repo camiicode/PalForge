@@ -120,29 +120,30 @@ export function renderBreedingPairsSections(specialCombos, standardPairs, contro
   if (standardPairs.length > 0) {
     const standardList = renderBreedingPairsList(visibleStandard);
     parts.push(standardList);
+  }
 
-    // El botón de "Ver más" aparece cuando el total de pares > perPage, no solo con los visibles
-    if (showPagination && totalPairs > perPage) {
-      const totalPages = Math.ceil(totalPairs / perPage);
-      const isLast = page + 1 >= totalPages;
-      const label = isLast
-        ? 'Mostrar más combinaciones'
-        : `Mostrar más combinaciones (${perPage} más)`;
+  // El botón de "Ver más" solo aparece si hay una página siguiente con pares.
+  // totalPairs / perPage = páginas totales (ej. 130 / 10 = 13 páginas).
+  // La página actual (0-indexed) más uno debe ser menor que el total de páginas.
+  if (showPagination && (page + 1) * perPage < totalPairs) {
+    const totalPages = Math.ceil(totalPairs / perPage);
+    const label = page + 1 >= totalPages
+      ? 'Mostrar más combinaciones'
+      : `Mostrar más combinaciones (${perPage} más)`;
 
-      // El ID del botón lleva la página a cargar (1-indexada), igual que el mensaje.
-      // Para la primera carga (page=0) genera "btn-breeding-pairs-more-1" que carga la página 1 (los primeros 10 pares).
-      const loadMoreButton = `
-        <div class="breeding-pairs__load-more__wrapper">
-          <button class="breeding-pairs__load-more button button--secondary"
-            id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
-        </div>
-      `;
-      parts.push(loadMoreButton);
-    }
+    // El ID del botón lleva la página a cargar (1-indexada), igual que el mensaje.
+    // Para la primera carga (page=0) genera "btn-breeding-pairs-more-1" que carga la página 1 (los primeros 10 pares).
+    const loadMoreButton = `
+      <div class="breeding-pairs__load-more__wrapper">
+        <button class="breeding-pairs__load-more button button--secondary"
+          id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
+      </div>
+    `;
+    parts.push(loadMoreButton);
   }
 
   // Mensaje global solo si NO hay ni combos especiales NI pares por fórmula
-  if (specialCombos.length === 0 && standardPairs.length === 0) {
+  if (specialCombos.length === 0 && visibleStandard.length === 0) {
     parts.push('<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>');
   }
 
