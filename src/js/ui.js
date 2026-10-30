@@ -444,20 +444,19 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
     // Manejar el botón "Ver más" (carga la siguiente página de pares)
     breedingResults.addEventListener('click', (event) => {
-      const loadMoreButton = event.target.closest('#btn-breeding-pairs-more');
+      const loadMoreButton = event.target.closest('.breeding-pairs__load-more');
       if (loadMoreButton) {
-        const perPage = 10;
-        const totalPairs = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10) * perPage;
-        // Recalcular la página a partir del ID del botón
-        const pageFromId = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10);
+        // El ID del botón lleva la página objetivo: btn-breeding-pairs-more-${page + 1}
+        // Extraer el número de página (1-indexado) y convertirlo a 0-indexado.
+        const pageFromId = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10) - 1;
         currentPage = pageFromId;
 
         const { specialCombos, standardPairs, totalPairs: total } = findBreedingPairs(pal.slug, pals, null, {
-          perPage,
+          perPage: 10,
           page: currentPage,
         });
         const sections = renderBreedingPairsSections(specialCombos, standardPairs, {
-          perPage,
+          perPage: 10,
           page: currentPage,
           totalPairs: total,
         });
