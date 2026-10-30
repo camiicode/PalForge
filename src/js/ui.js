@@ -539,6 +539,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
       } else {
         breedingResults.classList.add('hidden');
         breedingToggle.setAttribute('aria-expanded', 'false');
+        breedingToggle.hidden = true;
       }
     });
 
