@@ -21,6 +21,7 @@ import {
   renderResults,
   searchPals,
 } from './search.js';
+import { findBreedingPairs } from './breeding.js';
 import { toast } from './toast.js';
 import { escapeHtml } from './utils.js';
 
@@ -386,6 +387,18 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
         </div>
       </div>
 
+      <div class="breeding-pairs">
+        <button class="breeding-pairs__toggle button button--secondary"
+          id="btn-breeding-pairs" type="button">
+          <svg class="breeding-pairs__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          ¿Cómo lo consigo?
+        </button>
+        <div class="breeding-pairs__results" id="breeding-pairs-results" hidden></div>
+      </div>
+
       <button class="button button--primary" id="btn-add-project" type="button">
         Añadir a Proyectos
       </button>
@@ -396,9 +409,58 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     hideResults(dom.resultsList);
     updateExploreVisibility();
 
+    const breedingToggle = document.getElementById('btn-breeding-pairs');
+    const breedingResults = document.getElementById('breeding-pairs-results');
+    let breedingPairsLoaded = false;      breedingToggle.addEventListener('click', () => {
+      if (!breedingPairsLoaded) {
+        const pairs = findBreedingPairs(pal.slug, pals);
+        breedingResults.innerHTML = renderBreedingPairs(pairs);
+        breedingPairsLoaded = true;
+      }
+
+      const isHidden = breedingResults.hasAttribute('hidden');
+      breedingResults.toggleAttribute('hidden', false);
+      breedingToggle.setAttribute('aria-expanded', 'true');
+    });
+
     document.getElementById('btn-add-project').addEventListener('click', () => {
       showPassivePicker(pal);
     });
+  }
+
+  /**
+   * Renderiza los pares de cría en el modal.
+   *
+   * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} pairs
+   * @returns {string} Markup HTML.
+   */
+  function renderBreedingPairs(pairs) {
+    if (!pairs || pairs.length === 0) {
+      return '<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>';
+    }
+
+    return `
+      <ul class="breeding-pairs__list" role="list">
+        ${pairs
+          .map(
+            (pair) => `
+              <li class="breeding-pair">
+                <span class="breeding-pair__parents">
+                  <span class="breeding-pair__parent">${escapeHtml(pair.parent1)}</span>
+                  <svg class="breeding-pair__plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span class="breeding-pair__parent">${escapeHtml(pair.parent2)}</span>
+                </span>
+                <span class="breeding-pair__rank">Rango: ${pair.combinedRank}</span>
+                ${pair.isSpecialCombo ? '<span class="badge badge--special">Combo Especial</span>' : ''}
+              </li>
+            `,
+          )
+          .join('')}
+      </ul>
+    `;
   }
 
   /**

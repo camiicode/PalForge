@@ -832,6 +832,120 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
+   Bloque: breeding-pairs (resultado de cría inversa)
+   -------------------------------------------------------------------------- */
+.breeding-pairs {
+  margin: 24px 0;
+}
+
+.breeding-pairs__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  padding: 12px 20px;
+  margin-top: 0;
+  font-size: 0.9rem;
+}
+
+.breeding-pairs__icon {
+  flex: none;
+  color: var(--accent);
+}
+
+.breeding-pairs__results {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  animation: breeding-pairs-in 0.25s ease-out;
+}
+
+.breeding-pairs__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.breeding-pair {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.breeding-pair:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.breeding-pair__parents {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.breeding-pair__parent {
+  color: var(--text-main);
+}
+
+.breeding-pair__plus {
+  color: var(--text-muted);
+  flex: none;
+}
+
+.breeding-pair__rank {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.breeding-pairs__empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 12px;
+}
+
+/* Badge para combo especial */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.badge--special {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+@keyframes breeding-pairs-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ----------------------------------------------------------------------------
    Bloque: toast-stack / toast (notificaciones flotantes)
    -------------------------------------------------------------------------- */
 .toast-stack {
