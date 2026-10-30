@@ -24,18 +24,38 @@ const generatePairs = (targetSlug) => {
 };
 
 describe('renderBreedingPairsSections (UI pagination)', () => {
-  it('genera el botón "Ver más" con el ID de la página 1-indexada', () => {
+  it('genera el botón "Ver más" cuando hay más pares de los visibles', () => {
     const specialCombos = [];
-    const standardPairs = [
-      ...generatePairs('p1'),
+    // 7 Pals = 21 pares sin repetir (7*6/2). Con perPage=10, sobran 11.
+    const mockCatalog = [
+      { slug: 'p1', name: 'P1', combi_rank: 100, breedable: true },
+      { slug: 'p2', name: 'P2', combi_rank: 200, breedable: true },
+      { slug: 'p3', name: 'P3', combi_rank: 300, breedable: true },
+      { slug: 'p4', name: 'P4', combi_rank: 400, breedable: true },
+      { slug: 'p5', name: 'P5', combi_rank: 500, breedable: true },
+      { slug: 'p6', name: 'P6', combi_rank: 600, breedable: true },
+      { slug: 'p7', name: 'P7', combi_rank: 700, breedable: true },
     ];
+    const parents = mockCatalog.filter(p => p.slug !== 'p1');
+    const standardPairs = [];
+    for (let i = 0; i < parents.length; i++) {
+      for (let j = i + 1; j < parents.length; j++) {
+        standardPairs.push({
+          parent1: parents[i].name,
+          parent2: parents[j].name,
+          combinedRank: Math.floor((parents[i].combi_rank + parents[j].combi_rank + 1) / 2),
+          isSpecialCombo: false,
+        });
+      }
+    }
+    // 6 padres = 15 pares => 15 > 10 => el botón debe aparecer
+    expect(standardPairs.length).toBeGreaterThan(10);
     const sections = renderBreedingPairsSections(specialCombos, standardPairs, {
       perPage: 10,
       page: 0,
-      totalPairs: standardPairs.length + 10,
+      totalPairs: standardPairs.length,
     });
     const html = sections.join('');
-    // El botón de la primera página debe cargar la página 1 (pares 0-9)
     expect(html).toMatch(/id="btn-breeding-pairs-more-1"/);
   });
 

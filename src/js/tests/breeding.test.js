@@ -145,9 +145,11 @@ describe('findBreedingPairs', () => {
     expect(result.standardPairs).toHaveLength(15 * 14 / 2);
   });
 
-  it('devuelve la primera página de standardPairs cuando se solicita paginación', () => {
-    const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { perPage: 3 });
-    expect(result.standardPairs).toHaveLength(3);
+  it('devuelve todos los pares estándar cuando no hay límite', () => {
+    // 9 padres crables (excluyendo astralym que no es crable y anubis que es target)
+    // => 9*8/2 = 36 pares
+    const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS);
+    expect(result.standardPairs).toHaveLength(36);
   });
 
   it('reproduce el conteo real de Cattiva con el mock actual', () => {

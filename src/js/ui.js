@@ -116,17 +116,15 @@ export function renderBreedingPairsSections(specialCombos, standardPairs, contro
     parts.push(renderBreedingPairsList(specialCombos, 'special'));
   }
 
-  // Listado de pares por fórmula: solo visible si hay pares
+  // Listado de pares por fórmula: todos renderizados, solo primeros perPage visibles
   if (standardPairs.length > 0) {
-    const standardList = renderBreedingPairsList(visibleStandard);
+    const standardList = renderBreedingPairsList(standardPairs, 'standard', perPage);
     parts.push(standardList);
   }
 
-  // El botón de "Ver más" solo aparece si hay una página siguiente con pares.
-  // totalPairs / perPage = páginas totales (ej. 130 / 10 = 13 páginas).
-  // La página actual (0-indexed) más uno debe ser menor que el total de páginas.
-  if (showPagination && (page + 1) * perPage < totalPairs) {
-    const totalPages = Math.ceil(totalPairs / perPage);
+  // El botón "Ver más" aparece solo si hay items ocultos (más allá de perPage)
+  if (showPagination && standardPairs.length > perPage) {
+    const totalPages = Math.ceil(standardPairs.length / perPage);
     const label = page + 1 >= totalPages
       ? 'Mostrar más combinaciones'
       : `Mostrar más combinaciones (${perPage} más)`;
@@ -157,7 +155,7 @@ export function renderBreedingPairsSections(specialCombos, standardPairs, contro
  * @param {string} [sectionClass] Clase extra del contenedor ("special" | "standard").
  * @returns {string} Marcas HTML.
  */
-export function renderBreedingPairsList(pairs, sectionClass) {
+export function renderBreedingPairsList(pairs, sectionClass, visibleCount = Infinity) {
   if (!pairs || pairs.length === 0) {
     return '<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>';
   }
@@ -166,28 +164,31 @@ export function renderBreedingPairsList(pairs, sectionClass) {
     ? `breeding-pairs__list--${sectionClass}`
     : 'breeding-pairs__list';
 
-  return `
+  let html = `
     <ul class="${containerClass}" role="list">
-      ${pairs
-        .map(
-          (pair) => `
-            <li class="breeding-pair">
-              <span class="breeding-pair__parents">
-                <span class="breeding-pair__parent">${escapeHtml(pair.parent1)}</span>
-                <svg class="breeding-pair__plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                <span class="breeding-pair__parent">${escapeHtml(pair.parent2)}</span>
-              </span>
-              <span class="breeding-pair__rank">Rango: ${pair.combinedRank}</span>
-              ${pair.isSpecialCombo ? '<span class="badge badge--special">Combo Especial</span>' : ''}
-            </li>
-          `,
-        )
-        .join('')}
+  `;
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    const isHidden = i >= visibleCount;
+    const hiddenClass = isHidden ? ' breeding-pairs__item--hidden' : '';
+    html += `
+      <li class="breeding-pair${hiddenClass}" data-index="${i}">
+        <span class="breeding-pair__parents">
+          <span class="breeding-pair__parent">${escapeHtml(pair.parent1)}</span>
+          <svg class="breeding-pair__plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span class="breeding-pair__parent">${escapeHtml(pair.parent2)}</span>
+        </span>
+        <span class="breeding-pair__rank">Rango: ${pair.combinedRank}</span>
+        ${pair.isSpecialCombo ? '<span class="badge badge--special">Combo Especial</span>' : ''}
+      </li>`;
+  }
+  html += `
     </ul>
   `;
+  return html;
 }
 
 /**
@@ -541,35 +542,23 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
       }
     });
 
-    // Manejar el botón "Ver más" (carga la siguiente página de pares)
+    // Manejar el botón "Ver más" (muestra los items ocultos)
     breedingResults.addEventListener('click', (event) => {
       const loadMoreButton = event.target.closest('.breeding-pairs__load-more');
       if (loadMoreButton) {
-        // El botón "Ver más" siempre carga la PÁGINA SIGUIENTE a la actual.
-        // currentPage comienza en 0, entonces la primera vez carga la página 1.
-        // El ID del botón es solo informativo; la página se calcula como currentPage + 1.
-        const targetPage = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10);
-        currentPage = targetPage;
+        // Mostrar los próximos 10 items ocultos
+        const hiddenItems = [...breedingResults.querySelectorAll('.breeding-pairs__item--hidden')];
+        const showCount = 10;
+        let shown = 0;
+        for (let i = 0; i < hiddenItems.length && shown < showCount; i++) {
+          hiddenItems[i].classList.remove('breeding-pairs__item--hidden');
+          shown++;
+        }
 
-        const { specialCombos, standardPairs, totalPairs: total } = findBreedingPairs(pal.slug, pals, null, {
-          perPage: 10,
-          page: currentPage,
-        });
-        console.log('[breeding-debug] findBreedingPairs result', {
-          targetPage: currentPage,
-          visiblePairs: standardPairs.length,
-          totalPairs: total,
-        });
-        const sections = renderBreedingPairsSections(specialCombos, standardPairs, {
-          perPage: 10,
-          page: currentPage,
-          totalPairs: total,
-        });
-        breedingResults.innerHTML = sections.join('');
-
-        // Actualizar el texto del botón toggle a 'Ocultar combinaciones'
-        breedingToggle.textContent = 'Ocultar combinaciones';
-        breedingToggle.hidden = standardPairs.length === 0 && specialCombos.length === 0;
+        // Si no quedan items ocultos, ocultar el botón de "Ver más"
+        if (shown === 0) {
+          loadMoreButton.style.display = 'none';
+        }
       }
     });
 
