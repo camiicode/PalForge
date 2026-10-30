@@ -973,6 +973,11 @@ body {
   border-color: var(--accent);
 }
 
+/* Elementos ocultos al inicio (página 1+ de estándar) */
+.breeding-pairs__item--hidden {
+  display: none;
+}
+
 
 
 /* ----------------------------------------------------------------------------
