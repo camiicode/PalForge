@@ -1,4 +1,4 @@
-/* ============================================================================
+/* ===========================================================================
    PalForge — Hoja de estilos principal
    Metodología: BEM (bloque__elemento--modificador)
    ========================================================================== */
@@ -832,6 +832,155 @@ body {
 }
 
 /* ----------------------------------------------------------------------------
+   Bloque: breeding-pairs (resultado de cría inversa)
+   -------------------------------------------------------------------------- */
+
+/* Contenedor scrollable de los resultados de cría */
+.breeding-pairs__results {
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  animation: breeding-pairs-in 0.25s ease-out;
+  max-height: 40vh;
+  min-height: 120px;
+  overflow-y: auto;
+  max-width: 100%;
+}
+
+/* Sección especial (combos): borde dorado distinto */
+.breeding-pairs__section--special {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(251, 191, 36, 0.06);
+  border: 2px solid #f5c542;
+  border-radius: 12px;
+}
+
+.breeding-pairs__section-title--special {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fbbf24;
+  margin-bottom: 10px;
+}
+
+/* Bloque base de la lista de pares de cría */
+.breeding-pairs__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Estilo de la lista de pares normal (sin resaltar) */
+.breeding-pairs__list--standard {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+/* Cada par dentro de la sección normal */
+.breeding-pair {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.breeding-pair:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.breeding-pair__parents {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  flex: 1;
+}
+
+.breeding-pair__parent {
+  color: var(--text-main);
+}
+
+.breeding-pair__plus {
+  color: var(--text-muted);
+  flex: none;
+}
+
+.breeding-pair__rank {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.breeding-pairs__empty {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 12px;
+}
+
+/* Badge para combo especial */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.badge--special {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+/* Botón "Mostrar más combinaciones" */
+.breeding-pairs__load-more__wrapper {
+  margin-top: 12px;
+}
+
+.breeding-pairs__load-more {
+  width: 100%;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  color: var(--text-main);
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.breeding-pairs__load-more:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+/* Elementos ocultos al inicio (página 1+ de estándar) */
+.breeding-pairs__item--hidden {
+  display: none;
+}
+
+
+
+/* ----------------------------------------------------------------------------
    Bloque: toast-stack / toast (notificaciones flotantes)
    -------------------------------------------------------------------------- */
 .toast-stack {
@@ -917,7 +1066,6 @@ body {
     opacity: 0;
     transform: translateY(12px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -960,9 +1108,6 @@ body {
 
 /* ----------------------------------------------------------------------------
    Responsive: móvil (≤768px)
-
-   La app pasa a una sola columna: barra superior con menú hamburguesa,
-   buscador arriba, resultados en el medio y el cajón de proyectos deslizante.
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
   body {

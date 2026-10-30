@@ -21,6 +21,7 @@ import {
   renderResults,
   searchPals,
 } from './search.js';
+import { findBreedingPairs } from './breeding.js';
 import { toast } from './toast.js';
 import { escapeHtml } from './utils.js';
 
@@ -61,7 +62,7 @@ function isIOS() {
 }
 
 /**
- * Detecta si la app ya está instalada (ejecutándose como PWA standalone).
+ * Detecta si la app ya está instalada (ejecándose como PWA standalone).
  *
  * @returns {boolean}
  */
@@ -76,7 +77,7 @@ function isStandalone() {
  * Pinta las pasivas objetivo de un proyecto.
  *
  * @param {Array<string>} passives
- * @returns {string} Markup de la lista, o cadena vacía si no hay pasivas.
+ * @returns {string} Marcas de la lista, o cadena vacía si no hay pasivas.
  */
 function renderPassiveTags(passives) {
   if (!Array.isArray(passives) || passives.length === 0) return '';
@@ -88,6 +89,106 @@ function renderPassiveTags(passives) {
         .join('')}
     </ul>
   `;
+}
+
+/**
+ * Renderiza las secciones de pares de cría.
+ *
+ * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} specialCombos
+ * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} standardPairs
+ * @param {object} [controls]
+ * @param {boolean} [controls.showPagination=true]
+ * @returns {string[]} Marcas de cada sección.
+ */
+export function renderBreedingPairsSections(specialCombos, standardPairs, controls = {}) {
+  const showPagination = controls.showPagination !== false;
+  const perPage = controls.perPage || 10;
+  const page = controls.page || 0;
+  const totalPairs = controls.totalPairs || standardPairs.length;
+  const start = page * perPage;
+  const end = start + perPage;
+  const visibleStandard = standardPairs.slice(start, end);
+
+  const parts = [];
+
+  // Sección de combos especiales: solo se renderiza si hay alguno
+  if (specialCombos.length > 0) {
+    parts.push(renderBreedingPairsList(specialCombos, 'special'));
+  }
+
+  // Listado de pares por fórmula: todos renderizados, solo primeros perPage visibles
+  if (standardPairs.length > 0) {
+    const standardList = renderBreedingPairsList(standardPairs, 'standard', perPage);
+    parts.push(standardList);
+  }
+
+  // El botón "Ver más" aparece solo si hay items ocultos (más allá de perPage)
+  if (showPagination && standardPairs.length > perPage) {
+    const totalPages = Math.ceil(standardPairs.length / perPage);
+    const label = page + 1 >= totalPages
+      ? 'Mostrar más combinaciones'
+      : `Mostrar más combinaciones (${perPage} más)`;
+
+    // El ID del botón lleva la página a cargar (1-indexada), igual que el mensaje.
+    // Para la primera carga (page=0) genera "btn-breeding-pairs-more-1" que carga la página 1 (los primeros 10 pares).
+    const loadMoreButton = `
+      <div class="breeding-pairs__load-more__wrapper">
+        <button class="breeding-pairs__load-more button button--secondary"
+          id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
+      </div>
+    `;
+    parts.push(loadMoreButton);
+  }
+
+  // Mensaje global solo si NO hay ni combos especiales NI pares por fórmula
+  if (specialCombos.length === 0 && visibleStandard.length === 0) {
+    parts.push('<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>');
+  }
+
+  return parts;
+}
+
+/**
+ * Renderiza una lista de pares de cría.
+ *
+ * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} pairs
+ * @param {string} [sectionClass] Clase extra del contenedor ("special" | "standard").
+ * @returns {string} Marcas HTML.
+ */
+export function renderBreedingPairsList(pairs, sectionClass, visibleCount = Infinity) {
+  if (!pairs || pairs.length === 0) {
+    return '<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>';
+  }
+
+  const containerClass = sectionClass
+    ? `breeding-pairs__list--${sectionClass}`
+    : 'breeding-pairs__list';
+
+  let html = `
+    <ul class="${containerClass}" role="list">
+  `;
+  for (let i = 0; i < pairs.length; i++) {
+    const pair = pairs[i];
+    const isHidden = i >= visibleCount;
+    const hiddenClass = isHidden ? ' breeding-pairs__item--hidden' : '';
+    html += `
+      <li class="breeding-pair${hiddenClass}" data-index="${i}">
+        <span class="breeding-pair__parents">
+          <span class="breeding-pair__parent">${escapeHtml(pair.parent1)}</span>
+          <svg class="breeding-pair__plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span class="breeding-pair__parent">${escapeHtml(pair.parent2)}</span>
+        </span>
+        <span class="breeding-pair__rank">Rango: ${pair.combinedRank}</span>
+        ${pair.isSpecialCombo ? '<span class="badge badge--special">Combo Especial</span>' : ''}
+      </li>`;
+  }
+  html += `
+    </ul>
+  `;
+  return html;
 }
 
 /**
@@ -242,7 +343,6 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
             <img class="explore-card__img" src="${imageUrl}"
               alt="imagen de ${escapeHtml(pal.name)}"
               loading="lazy"
-              onerror="if(this.onerror){(this.onerror=null,this.src='${placeholderFallback(pal.name).replace(/'/g, "\\u0027")}',this.classList.add('explore-card__img--placeholder'))}"
             />
             <span class="explore-card__title">${escapeHtml(pal.name)}</span>
             <span class="explore-card__elements">${tags}</span>
@@ -386,6 +486,18 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
         </div>
       </div>
 
+      <div class="breeding-pairs">
+        <button class="breeding-pairs__toggle button button--secondary"
+          id="btn-breeding-pairs" type="button">
+          <svg class="breeding-pairs__icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          ¿Cómo lo consigo?
+        </button>
+        <div class="breeding-pairs__results" id="breeding-pairs-results"></div>
+      </div>
+
       <button class="button button--primary" id="btn-add-project" type="button">
         Añadir a Proyectos
       </button>
@@ -395,6 +507,61 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     dom.searchInput.value = '';
     hideResults(dom.resultsList);
     updateExploreVisibility();
+
+    const breedingToggle = document.getElementById('btn-breeding-pairs');
+    const breedingResults = document.getElementById('breeding-pairs-results');
+    let breedingPairsLoaded = false;
+    let currentPage = 0;
+
+    breedingToggle.addEventListener('click', () => {
+      if (!breedingPairsLoaded) {
+        const { specialCombos, standardPairs, totalPairs } = findBreedingPairs(pal.slug, pals);
+        const sections = renderBreedingPairsSections(specialCombos, standardPairs, {
+          perPage: 10,
+          page: currentPage,
+          totalPairs,
+        });
+        breedingResults.innerHTML = sections.join('');
+
+        breedingToggle.textContent =
+          standardPairs.length > 0 || specialCombos.length > 0
+            ? 'Ocultar combinaciones'
+            : '¿Cómo lo consigo?';
+        breedingToggle.hidden = standardPairs.length === 0 && specialCombos.length === 0;
+
+        breedingPairsLoaded = true;
+      }
+
+      const isHidden = breedingResults.hasAttribute('hidden');
+      if (isHidden) {
+        breedingResults.classList.remove('hidden');
+        breedingToggle.setAttribute('aria-expanded', 'true');
+      } else {
+        breedingResults.classList.add('hidden');
+        breedingToggle.setAttribute('aria-expanded', 'false');
+        breedingToggle.hidden = true;
+      }
+    });
+
+    // Manejar el botón "Ver más" (muestra los items ocultos)
+    breedingResults.addEventListener('click', (event) => {
+      const loadMoreButton = event.target.closest('.breeding-pairs__load-more');
+      if (loadMoreButton) {
+        // Mostrar los próximos 10 items ocultos
+        const hiddenItems = [...breedingResults.querySelectorAll('.breeding-pairs__item--hidden')];
+        const showCount = 10;
+        let shown = 0;
+        for (let i = 0; i < hiddenItems.length && shown < showCount; i++) {
+          hiddenItems[i].classList.remove('breeding-pairs__item--hidden');
+          shown++;
+        }
+
+        // Si no quedan items ocultos, ocultar el botón de "Ver más"
+        if (shown === 0) {
+          loadMoreButton.style.display = 'none';
+        }
+      }
+    });
 
     document.getElementById('btn-add-project').addEventListener('click', () => {
       showPassivePicker(pal);
