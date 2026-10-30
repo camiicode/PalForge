@@ -411,6 +411,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     const breedingToggle = document.getElementById('btn-breeding-pairs');
     const breedingResults = document.getElementById('breeding-pairs-results');
     let breedingPairsLoaded = false;
+    let currentPage = 0;
 
     breedingToggle.addEventListener('click', () => {
       if (!breedingPairsLoaded) {
@@ -422,7 +423,6 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
         });
         breedingResults.innerHTML = sections.join('');
 
-        // Mostrar u ocultar el botón de toggle según haya resultados
         breedingToggle.textContent =
           standardPairs.length > 0 || specialCombos.length > 0
             ? 'Ocultar combinaciones'
@@ -439,6 +439,33 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
       } else {
         breedingResults.classList.add('hidden');
         breedingToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Manejar el botón "Ver más" (carga la siguiente página de pares)
+    breedingResults.addEventListener('click', (event) => {
+      const loadMoreButton = event.target.closest('#btn-breeding-pairs-more');
+      if (loadMoreButton) {
+        const perPage = 10;
+        const totalPairs = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10) * perPage;
+        // Recalcular la página a partir del ID del botón
+        const pageFromId = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10);
+        currentPage = pageFromId;
+
+        const { specialCombos, standardPairs, totalPairs: total } = findBreedingPairs(pal.slug, pals, null, {
+          perPage,
+          page: currentPage,
+        });
+        const sections = renderBreedingPairsSections(specialCombos, standardPairs, {
+          perPage,
+          page: currentPage,
+          totalPairs: total,
+        });
+        breedingResults.innerHTML = sections.join('');
+
+        // Actualizar el texto del botón toggle a 'Ocultar combinaciones'
+        breedingToggle.textContent = 'Ocultar combinaciones';
+        breedingToggle.hidden = standardPairs.length === 0 && specialCombos.length === 0;
       }
     });
 
