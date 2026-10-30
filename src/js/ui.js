@@ -414,8 +414,12 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
     breedingToggle.addEventListener('click', () => {
       if (!breedingPairsLoaded) {
-        const { specialCombos, standardPairs } = findBreedingPairs(pal.slug, pals);
-        const sections = renderBreedingPairsSections(specialCombos, standardPairs);
+        const { specialCombos, standardPairs, totalPairs } = findBreedingPairs(pal.slug, pals);
+        const sections = renderBreedingPairsSections(specialCombos, standardPairs, {
+          perPage: 10,
+          page: 0,
+          totalPairs,
+        });
         breedingResults.innerHTML = sections.join('');
 
         // Mostrar u ocultar el botón de toggle según haya resultados
@@ -456,6 +460,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     const showPagination = controls.showPagination !== false;
     const perPage = controls.perPage || 10;
     const page = controls.page || 0;
+    const totalPairs = controls.totalPairs || standardPairs.length;
     const start = page * perPage;
     const end = start + perPage;
     const visibleStandard = standardPairs.slice(start, end);
@@ -472,8 +477,9 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
       const standardList = renderBreedingPairsList(visibleStandard);
       parts.push(standardList);
 
-      if (showPagination && standardPairs.length > perPage) {
-        const totalPages = Math.ceil(standardPairs.length / perPage);
+      // El botón de "Ver más" aparece cuando el total de pares > perPage, no solo con los visibles
+      if (showPagination && totalPairs > perPage) {
+        const totalPages = Math.ceil(totalPairs / perPage);
         const isLast = page + 1 >= totalPages;
         const label = isLast
           ? 'Mostrar más combinaciones'
@@ -481,7 +487,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
         const loadMoreButton = `
           <div class="breeding-pairs__load-more__wrapper">
-            <button class="button--load-more breeding-pairs__load-more button button--secondary"
+            <button class="breeding-pairs__load-more button button--secondary"
               id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
           </div>
         `;

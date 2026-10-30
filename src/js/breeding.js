@@ -172,13 +172,6 @@ export function findBreedingPairs(
   const breedablePals = allPals.filter(isEligibleForBreeding);
   const parents = breedablePals.filter((pal) => pal.slug !== targetPalSlug);
 
-  // Debug: count for Cattiva
-  if (targetPalSlug === 'cattiva') {
-    console.log('[breeding-debug] Cattiva count:');
-    console.log('[breeding-debug]   breedablePals:', breedablePals.length);
-    console.log('[breeding-debug]   parents:', parents.length);
-  }
-
   if (parents.length < 2) {
     return { specialCombos: [], standardPairs: [] };
   }
@@ -251,21 +244,33 @@ export function findBreedingPairs(
         combinedRank: pair.combinedRank,
         isSpecialCombo: pair.isSpecialCombo,
       })),
+      totalPairs: validPairs.length,
     };
   }
 
+  // Si el target tiene parent_pair_count definido (que representa el número de
+  // pares de cría verificados por la comunidad), limitar los resultados a ese
+  // número de los pares más cercanos al combi_rank del target.
+  const parentPairCount = targetPal.parent_pair_count ?? 0;
   const perPage = opts.perPage || 10;
   const page = Math.max(0, opts.page || 0);
   const start = page * perPage;
   const end = start + perPage;
 
+  // Los pares se ordenan por cercanía al combi_rank del target, luego por
+  // promedio de rangos, etc. (ya están ordenados en `validPairs`). Tomar los
+  // primeros `parentPairCount` si el target tiene parent_pair_count definido.
+  const totalForTarget = parentPairCount > 0 ? parentPairCount : validPairs.length;
+  const validForTarget = validPairs.slice(0, totalForTarget);
+
   return {
     specialCombos: [],
-    standardPairs: validPairs.slice(start, end).map((pair) => ({
+    standardPairs: validForTarget.slice(start, end).map((pair) => ({
       parent1: pair.parent1,
       parent2: pair.parent2,
       combinedRank: pair.combinedRank,
       isSpecialCombo: pair.isSpecialCombo,
     })),
+    totalPairs: validForTarget.length,
   };
 }
