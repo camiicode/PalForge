@@ -63,12 +63,7 @@ describe('findBreedingPairs', () => {
     }
   });
 
-  it('respeta el límite de resultados', () => {
-    const pairs = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 3 });
-    expect(pairs).toHaveLength(3);
-  });
-
-  it('devuelve un máximo de 10 resultados por defecto', () => {
+  it('devuelve todos los pares viables sin límite por defecto', () => {
     const manyPals = MOCK_PALS.filter((p) => p.breedable).concat(
       [
         { slug: 'a', name: 'A', combi_rank: 50, breedable: true },
@@ -80,7 +75,14 @@ describe('findBreedingPairs', () => {
       ],
     );
     const pairs = findBreedingPairs('anubis', manyPals, SPECIAL_COMBOS);
-    expect(pairs).toHaveLength(10);
+    // Se devuelven todos los pares únicos generados por el bucle doble (sin límite).
+    // El resultado es 120, no los 10 que devolvía el límite anterior.
+    expect(pairs).toHaveLength(120);
+  });
+
+  it('respeta el límite cuando se lo pasan explícitamente', () => {
+    const pairs = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 3 });
+    expect(pairs).toHaveLength(3);
   });
 
   it('devuelve una lista vacía cuando no hay Pals crables disponibles', () => {

@@ -81,7 +81,7 @@ define(['./workbox-7e5eb42b'], (function (workbox) { 'use strict';
     "revision": "50529fa044851c6a911b9c5964b5e2d2"
   }, {
     "url": "/PalForge/index.html",
-    "revision": "0.q72ung7s5rk"
+    "revision": "0.v76utk8if88"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/PalForge/index.html"), {
