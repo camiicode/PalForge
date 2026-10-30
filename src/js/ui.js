@@ -77,7 +77,7 @@ function isStandalone() {
  * Pinta las pasivas objetivo de un proyecto.
  *
  * @param {Array<string>} passives
- * @returns {string} Markup de la lista, o cadena vacía si no hay pasivas.
+ * @returns {string} Marcas de la lista, o cadena vacía si no hay pasivas.
  */
 function renderPassiveTags(passives) {
   if (!Array.isArray(passives) || passives.length === 0) return '';
@@ -86,6 +86,104 @@ function renderPassiveTags(passives) {
     <ul class="project-list__passives" aria-label="Pasivas objetivo">
       ${passives
         .map((passive) => `<li class="passive-tag">${escapeHtml(passive)}</li>`)
+        .join('')}
+    </ul>
+  `;
+}
+
+/**
+ * Renderiza las secciones de pares de cría.
+ *
+ * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} specialCombos
+ * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} standardPairs
+ * @param {object} [controls]
+ * @param {boolean} [controls.showPagination=true]
+ * @returns {string[]} Marcas de cada sección.
+ */
+export function renderBreedingPairsSections(specialCombos, standardPairs, controls = {}) {
+  const showPagination = controls.showPagination !== false;
+  const perPage = controls.perPage || 10;
+  const page = controls.page || 0;
+  const totalPairs = controls.totalPairs || standardPairs.length;
+  const start = page * perPage;
+  const end = start + perPage;
+  const visibleStandard = standardPairs.slice(start, end);
+
+  const parts = [];
+
+  // Sección de combos especiales: solo se renderiza si hay alguno
+  if (specialCombos.length > 0) {
+    parts.push(renderBreedingPairsList(specialCombos, 'special'));
+  }
+
+  // Listado de pares por fórmula: solo visible si hay pares
+  if (standardPairs.length > 0) {
+    const standardList = renderBreedingPairsList(visibleStandard);
+    parts.push(standardList);
+
+    // El botón de "Ver más" aparece cuando el total de pares > perPage, no solo con los visibles
+    if (showPagination && totalPairs > perPage) {
+      const totalPages = Math.ceil(totalPairs / perPage);
+      const isLast = page + 1 >= totalPages;
+      const label = isLast
+        ? 'Mostrar más combinaciones'
+        : `Mostrar más combinaciones (${perPage} más)`;
+
+      // El ID del botón lleva la página a cargar (1-indexada), igual que el mensaje.
+      // Para la primera carga (page=0) genera "btn-breeding-pairs-more-1" que carga la página 1 (los primeros 10 pares).
+      const loadMoreButton = `
+        <div class="breeding-pairs__load-more__wrapper">
+          <button class="breeding-pairs__load-more button button--secondary"
+            id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
+        </div>
+      `;
+      parts.push(loadMoreButton);
+    }
+  }
+
+  // Mensaje global solo si NO hay ni combos especiales NI pares por fórmula
+  if (specialCombos.length === 0 && standardPairs.length === 0) {
+    parts.push('<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>');
+  }
+
+  return parts;
+}
+
+/**
+ * Renderiza una lista de pares de cría.
+ *
+ * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} pairs
+ * @param {string} [sectionClass] Clase extra del contenedor ("special" | "standard").
+ * @returns {string} Marcas HTML.
+ */
+export function renderBreedingPairsList(pairs, sectionClass) {
+  if (!pairs || pairs.length === 0) {
+    return '<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>';
+  }
+
+  const containerClass = sectionClass
+    ? `breeding-pairs__list--${sectionClass}`
+    : 'breeding-pairs__list';
+
+  return `
+    <ul class="${containerClass}" role="list">
+      ${pairs
+        .map(
+          (pair) => `
+            <li class="breeding-pair">
+              <span class="breeding-pair__parents">
+                <span class="breeding-pair__parent">${escapeHtml(pair.parent1)}</span>
+                <svg class="breeding-pair__plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span class="breeding-pair__parent">${escapeHtml(pair.parent2)}</span>
+              </span>
+              <span class="breeding-pair__rank">Rango: ${pair.combinedRank}</span>
+              ${pair.isSpecialCombo ? '<span class="badge badge--special">Combo Especial</span>' : ''}
+            </li>
+          `,
+        )
         .join('')}
     </ul>
   `;
@@ -446,21 +544,11 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     breedingResults.addEventListener('click', (event) => {
       const loadMoreButton = event.target.closest('.breeding-pairs__load-more');
       if (loadMoreButton) {
-        // === DEBUG ===
-        console.log('[breeding-debug] LOAD-MORE CLICK', {
-          buttonId: loadMoreButton.id,
-          targetPageRaw: loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? 'unknown',
-          pageFromId: parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10) - 1,
-          currentPage,
-          palSlug: pal.slug,
-          totalPairsFromState: loadMoreButton.dataset.totalPairs ?? 'n/a',
-        });
-        // =================
-
-        // El ID del botón lleva la página 0-indexada directamente (no +1)
-        // Extraer el número de página sin restar 1.
-        const pageFromId = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10);
-        currentPage = pageFromId;
+        // El botón "Ver más" siempre carga la PÁGINA SIGUIENTE a la actual.
+        // currentPage comienza en 0, entonces la primera vez carga la página 1.
+        // El ID del botón es solo informativo; la página se calcula como currentPage + 1.
+        const targetPage = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10);
+        currentPage = targetPage;
 
         const { specialCombos, standardPairs, totalPairs: total } = findBreedingPairs(pal.slug, pals, null, {
           perPage: 10,
@@ -487,103 +575,6 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     document.getElementById('btn-add-project').addEventListener('click', () => {
       showPassivePicker(pal);
     });
-  }
-
-  /**
-   * Renderiza las secciones de pares de cría.
-   *
-   * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} specialCombos
-   * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} standardPairs
-   * @param {object} [controls]
-   * @param {boolean} [controls.showPagination=true]
-   * @returns {string[]} Marcas de cada sección.
-   */
-  function renderBreedingPairsSections(specialCombos, standardPairs, controls = {}) {
-    const showPagination = controls.showPagination !== false;
-    const perPage = controls.perPage || 10;
-    const page = controls.page || 0;
-    const totalPairs = controls.totalPairs || standardPairs.length;
-    const start = page * perPage;
-    const end = start + perPage;
-    const visibleStandard = standardPairs.slice(start, end);
-
-    const parts = [];
-
-    // Sección de combos especiales: solo se renderiza si hay alguno
-    if (specialCombos.length > 0) {
-      parts.push(renderBreedingPairsList(specialCombos, 'special'));
-    }
-
-    // Listado de pares por fórmula: solo visible si hay pares
-    if (standardPairs.length > 0) {
-      const standardList = renderBreedingPairsList(visibleStandard);
-      parts.push(standardList);
-
-      // El botón de "Ver más" aparece cuando el total de pares > perPage, no solo con los visibles
-      if (showPagination && totalPairs > perPage) {
-        const totalPages = Math.ceil(totalPairs / perPage);
-        const isLast = page + 1 >= totalPages;
-        const label = isLast
-          ? 'Mostrar más combinaciones'
-          : `Mostrar más combinaciones (${perPage} más)`;
-
-        // Usar la página 0-indexada directamente en el ID (no +1)
-        const loadMoreButton = `
-          <div class="breeding-pairs__load-more__wrapper">
-            <button class="breeding-pairs__load-more button button--secondary"
-              id="btn-breeding-pairs-more-${page}" type="button">${label}</button>
-          </div>
-        `;
-        parts.push(loadMoreButton);
-      }
-    }
-
-    // Mensaje global solo si NO hay ni combos especiales NI pares por fórmula
-    if (specialCombos.length === 0 && standardPairs.length === 0) {
-      parts.push('<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>');
-    }
-
-    return parts;
-  }
-
-  /**
-   * Renderiza una lista de pares de cría.
-   *
-   * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} pairs
-   * @param {string} [sectionClass] Clase extra del contenedor ("special" | "standard").
-   * @returns {string} Marcas HTML.
-   */
-  function renderBreedingPairsList(pairs, sectionClass) {
-    if (!pairs || pairs.length === 0) {
-      return '<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>';
-    }
-
-    const containerClass = sectionClass
-      ? `breeding-pairs__list--${sectionClass}`
-      : 'breeding-pairs__list';
-
-    return `
-      <ul class="${containerClass}" role="list">
-        ${pairs
-          .map(
-            (pair) => `
-              <li class="breeding-pair">
-                <span class="breeding-pair__parents">
-                  <span class="breeding-pair__parent">${escapeHtml(pair.parent1)}</span>
-                  <svg class="breeding-pair__plus" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true" focusable="false">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  <span class="breeding-pair__parent">${escapeHtml(pair.parent2)}</span>
-                </span>
-                <span class="breeding-pair__rank">Rango: ${pair.combinedRank}</span>
-                ${pair.isSpecialCombo ? '<span class="badge badge--special">Combo Especial</span>' : ''}
-              </li>
-            `,
-          )
-          .join('')}
-      </ul>
-    `;
   }
 
   /**
