@@ -172,6 +172,13 @@ export function findBreedingPairs(
   const breedablePals = allPals.filter(isEligibleForBreeding);
   const parents = breedablePals.filter((pal) => pal.slug !== targetPalSlug);
 
+  // Debug: count for Cattiva
+  if (targetPalSlug === 'cattiva') {
+    console.log('[breeding-debug] Cattiva count:');
+    console.log('[breeding-debug]   breedablePals:', breedablePals.length);
+    console.log('[breeding-debug]   parents:', parents.length);
+  }
+
   if (parents.length < 2) {
     return { specialCombos: [], standardPairs: [] };
   }

@@ -56,8 +56,6 @@ describe('findBreedingPairs', () => {
 
   it('usa la fórmula de combi_rank con +1 (floor((r1 + r2 + 1) / 2))', () => {
     // Penking (10) + Bushi (30) = floor(41 / 2) = 20
-    // Si se usara la fórmula antigua (sin +1) el resultado sería 20 también,
-    // así que se prueban rangos que distingan ambas fórmulas.
     const result = findBreedingPairs('dinossom', MOCK_PALS, SPECIAL_COMBOS, { limit: 5 });
     const penkingBushi = result.standardPairs.find(
       (p) =>
@@ -143,12 +141,49 @@ describe('findBreedingPairs', () => {
       { slug: 'f', name: 'F', combi_rank: 170, breedable: true },
     ]);
     const result = findBreedingPairs('anubis', manyPals, SPECIAL_COMBOS, { perPage: 500 });
-    // 15 pares sin repetir (15 Pals crables en el mock: 9 originales + 6 nuevos)
+    // 15 Pals crables en el mock => 15*14/2 = 105 pares únicos
     expect(result.standardPairs).toHaveLength(15 * 14 / 2);
   });
 
   it('devuelve la primera página de standardPairs cuando se solicita paginación', () => {
     const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { perPage: 3 });
     expect(result.standardPairs).toHaveLength(3);
+  });
+
+  it('reproduce el conteo real de Cattiva con el mock actual', () => {
+    // El mock tiene 11 Pals crables (10 originales + cattiva).
+    // El target 'cattiva' se descarta como padre: 10 padres => 10*9/2 = 45 pares.
+    const cattivaMock = MOCK_PALS.concat([
+      { slug: 'cattiva', name: 'Cattiva', combi_rank: 2760, breedable: true },
+    ]);
+    const result = findBreedingPairs('cattiva', cattivaMock, SPECIAL_COMBOS, { perPage: 500 });
+    expect(result.standardPairs).toHaveLength(45);
+  });
+
+  it('muestra el botón de load more cuando hay más de 10 pares', () => {
+    // 6 Pals = 15 pares sin repetir; con perPage=10 se muestran 10 y sobran 5
+    const mockCatalog = [
+      { slug: 'p1', name: 'P1', combi_rank: 100, breedable: true },
+      { slug: 'p2', name: 'P2', combi_rank: 200, breedable: true },
+      { slug: 'p3', name: 'P3', combi_rank: 300, breedable: true },
+      { slug: 'p4', name: 'P4', combi_rank: 400, breedable: true },
+      { slug: 'p5', name: 'P5', combi_rank: 500, breedable: true },
+      { slug: 'p6', name: 'P6', combi_rank: 600, breedable: true },
+    ];
+    const result = findBreedingPairs('p1', mockCatalog, SPECIAL_COMBOS, { perPage: 10 });
+    expect(result.standardPairs).toHaveLength(10);
+  });
+
+  it('no muestra el botón de load more cuando hay exactamente 10 pares', () => {
+    // 5 Pals = 5*4/2 = 10 pares, pero 'p1' se excluye como target => 4 padres => 4*3/2 = 6 pares
+    const smallCatalog = [
+      { slug: 'p1', name: 'P1', combi_rank: 100, breedable: true },
+      { slug: 'p2', name: 'P2', combi_rank: 200, breedable: true },
+      { slug: 'p3', name: 'P3', combi_rank: 300, breedable: true },
+      { slug: 'p4', name: 'P4', combi_rank: 400, breedable: true },
+      { slug: 'p5', name: 'P5', combi_rank: 500, breedable: true },
+    ];
+    const result = findBreedingPairs('p1', smallCatalog, SPECIAL_COMBOS, { perPage: 10 });
+    expect(result.standardPairs).toHaveLength(6);
   });
 });
