@@ -395,7 +395,7 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
           </svg>
           ¿Cómo lo consigo?
         </button>
-        <div class="breeding-pairs__results" id="breeding-pairs-results" hidden></div>
+        <div class="breeding-pairs__results" id="breeding-pairs-results"></div>
       </div>
 
       <button class="button button--primary" id="btn-add-project" type="button">
@@ -417,12 +417,25 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
         const { specialCombos, standardPairs } = findBreedingPairs(pal.slug, pals);
         const sections = renderBreedingPairsSections(specialCombos, standardPairs);
         breedingResults.innerHTML = sections.join('');
+
+        // Mostrar u ocultar el botón de toggle según haya resultados
+        breedingToggle.textContent =
+          standardPairs.length > 0 || specialCombos.length > 0
+            ? 'Ocultar combinaciones'
+            : '¿Cómo lo consigo?';
+        breedingToggle.hidden = standardPairs.length === 0 && specialCombos.length === 0;
+
         breedingPairsLoaded = true;
       }
 
       const isHidden = breedingResults.hasAttribute('hidden');
-      breedingResults.toggleAttribute('hidden', false);
-      breedingToggle.setAttribute('aria-expanded', 'true');
+      if (isHidden) {
+        breedingResults.classList.remove('hidden');
+        breedingToggle.setAttribute('aria-expanded', 'true');
+      } else {
+        breedingResults.classList.add('hidden');
+        breedingToggle.setAttribute('aria-expanded', 'false');
+      }
     });
 
     document.getElementById('btn-add-project').addEventListener('click', () => {
@@ -467,8 +480,10 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
           : `Mostrar más combinaciones (${perPage} más)`;
 
         const loadMoreButton = `
-          <button class="breeding-pairs__load-more button button--secondary"
-            id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
+          <div class="breeding-pairs__load-more__wrapper">
+            <button class="button--load-more breeding-pairs__load-more button button--secondary"
+              id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
+          </div>
         `;
         parts.push(loadMoreButton);
       }
