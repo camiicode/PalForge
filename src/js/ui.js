@@ -446,6 +446,17 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     breedingResults.addEventListener('click', (event) => {
       const loadMoreButton = event.target.closest('.breeding-pairs__load-more');
       if (loadMoreButton) {
+        // === DEBUG ===
+        console.log('[breeding-debug] LOAD-MORE CLICK', {
+          buttonId: loadMoreButton.id,
+          targetPageRaw: loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? 'unknown',
+          pageFromId: parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10) - 1,
+          currentPage,
+          palSlug: pal.slug,
+          totalPairsFromState: loadMoreButton.dataset.totalPairs ?? 'n/a',
+        });
+        // =================
+
         // El ID del botón lleva la página objetivo: btn-breeding-pairs-more-${page + 1}
         // Extraer el número de página (1-indexado) y convertirlo a 0-indexado.
         const pageFromId = parseInt(loadMoreButton.id.match(/more-(\d+)/)?.[1] ?? '0', 10) - 1;
@@ -454,6 +465,11 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
         const { specialCombos, standardPairs, totalPairs: total } = findBreedingPairs(pal.slug, pals, null, {
           perPage: 10,
           page: currentPage,
+        });
+        console.log('[breeding-debug] findBreedingPairs result', {
+          targetPage: currentPage,
+          visiblePairs: standardPairs.length,
+          totalPairs: total,
         });
         const sections = renderBreedingPairsSections(specialCombos, standardPairs, {
           perPage: 10,
