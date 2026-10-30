@@ -940,14 +940,18 @@ body {
   width: 100%;
   margin-top: 12px;
   justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.25);
+  color: var(--text-main);
 }
 
-/* Fila de carga de la sección estándar */
-.breeding-pairs__row--standard {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.breeding-pairs__load-more:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-style: solid;
+  border-color: var(--accent);
 }
+
+
 
 /* ----------------------------------------------------------------------------
    Bloque: toast-stack / toast (notificaciones flotantes)

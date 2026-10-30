@@ -447,28 +447,36 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
     const end = start + perPage;
     const visibleStandard = standardPairs.slice(start, end);
 
-    const specialSection = renderBreedingPairsList(specialCombos, 'special');
-    const standardList =
-      visibleStandard.length > 0 ? renderBreedingPairsList(visibleStandard) : '';
+    const parts = [];
 
-    const parts = [specialSection];
+    // Sección de combos especiales: solo se renderiza si hay alguno
+    if (specialCombos.length > 0) {
+      parts.push(renderBreedingPairsList(specialCombos, 'special'));
+    }
 
-    if (standardList) {
+    // Listado de pares por fórmula: solo visible si hay pares
+    if (standardPairs.length > 0) {
+      const standardList = renderBreedingPairsList(visibleStandard);
       parts.push(standardList);
 
       if (showPagination && standardPairs.length > perPage) {
         const totalPages = Math.ceil(standardPairs.length / perPage);
-        const buttonId = `btn-breeding-pairs-more-${page + 1}`;
         const isLast = page + 1 >= totalPages;
         const label = isLast
           ? 'Mostrar más combinaciones'
           : `Mostrar más combinaciones (${perPage} más)`;
 
-        parts.push(`
+        const loadMoreButton = `
           <button class="breeding-pairs__load-more button button--secondary"
-            id="${buttonId}" type="button">${label}</button>
-        `);
+            id="btn-breeding-pairs-more-${page + 1}" type="button">${label}</button>
+        `;
+        parts.push(loadMoreButton);
       }
+    }
+
+    // Mensaje global solo si NO hay ni combos especiales NI pares por fórmula
+    if (specialCombos.length === 0 && standardPairs.length === 0) {
+      parts.push('<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>');
     }
 
     return parts;
