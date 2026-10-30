@@ -1,4 +1,4 @@
-/* ============================================================================
+/* ===========================================================================
    PalForge — Hoja de estilos principal
    Metodología: BEM (bloque__elemento--modificador)
    ========================================================================== */
@@ -834,36 +834,26 @@ body {
 /* ----------------------------------------------------------------------------
    Bloque: breeding-pairs (resultado de cría inversa)
    -------------------------------------------------------------------------- */
-.breeding-pairs {
-  margin: 24px 0;
-}
 
-.breeding-pairs__toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  width: auto;
-  padding: 12px 20px;
-  margin-top: 0;
-  font-size: 0.9rem;
-}
-
-.breeding-pairs__icon {
-  flex: none;
-  color: var(--accent);
-}
-
-.breeding-pairs__results {
-  margin-top: 16px;
+/* Sección especial (combos): borde dorado distinto */
+.breeding-pairs__section--special {
+  margin-top: 20px;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--border);
+  background: rgba(251, 191, 36, 0.06);
+  border: 2px solid #f5c542;
   border-radius: 12px;
-  animation: breeding-pairs-in 0.25s ease-out;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
+.breeding-pairs__section-title--special {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fbbf24;
+  margin-bottom: 10px;
+}
+
+/* Bloque base de la lista de pares de cría */
 .breeding-pairs__list {
   list-style: none;
   display: flex;
@@ -871,6 +861,15 @@ body {
   gap: 12px;
 }
 
+/* Estilo de la lista de pares normal (sin resaltar) */
+.breeding-pairs__list--standard {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Cada par dentro de la sección normal */
 .breeding-pair {
   display: flex;
   align-items: center;
@@ -936,15 +935,18 @@ body {
   border: 1px solid rgba(251, 191, 36, 0.3);
 }
 
-@keyframes breeding-pairs-in {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Botón "Mostrar más combinaciones" */
+.breeding-pairs__load-more {
+  width: 100%;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+/* Fila de carga de la sección estándar */
+.breeding-pairs__row--standard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* ----------------------------------------------------------------------------
@@ -1033,7 +1035,6 @@ body {
     opacity: 0;
     transform: translateY(12px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1076,9 +1077,6 @@ body {
 
 /* ----------------------------------------------------------------------------
    Responsive: móvil (≤768px)
-
-   La app pasa a una sola columna: barra superior con menú hamburguesa,
-   buscador arriba, resultados en el medio y el cajón de proyectos deslizante.
    -------------------------------------------------------------------------- */
 @media (max-width: 768px) {
   body {

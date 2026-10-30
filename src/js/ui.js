@@ -62,7 +62,7 @@ function isIOS() {
 }
 
 /**
- * Detecta si la app ya está instalada (ejecutándose como PWA standalone).
+ * Detecta si la app ya está instalada (ejecándose como PWA standalone).
  *
  * @returns {boolean}
  */
@@ -243,7 +243,6 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
             <img class="explore-card__img" src="${imageUrl}"
               alt="imagen de ${escapeHtml(pal.name)}"
               loading="lazy"
-              onerror="if(this.onerror){(this.onerror=null,this.src='${placeholderFallback(pal.name).replace(/'/g, "\\u0027")}',this.classList.add('explore-card__img--placeholder'))}"
             />
             <span class="explore-card__title">${escapeHtml(pal.name)}</span>
             <span class="explore-card__elements">${tags}</span>
@@ -411,10 +410,13 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
 
     const breedingToggle = document.getElementById('btn-breeding-pairs');
     const breedingResults = document.getElementById('breeding-pairs-results');
-    let breedingPairsLoaded = false;      breedingToggle.addEventListener('click', () => {
+    let breedingPairsLoaded = false;
+
+    breedingToggle.addEventListener('click', () => {
       if (!breedingPairsLoaded) {
-        const pairs = findBreedingPairs(pal.slug, pals);
-        breedingResults.innerHTML = renderBreedingPairs(pairs);
+        const { specialCombos, standardPairs } = findBreedingPairs(pal.slug, pals);
+        const sections = renderBreedingPairsSections(specialCombos, standardPairs);
+        breedingResults.innerHTML = sections.join('');
         breedingPairsLoaded = true;
       }
 
@@ -429,18 +431,67 @@ export function initUI({ pals = [], fuse, gameVersion = null } = {}) {
   }
 
   /**
-   * Renderiza los pares de cría en el modal.
+   * Renderiza las secciones de pares de cría.
+   *
+   * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} specialCombos
+   * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} standardPairs
+   * @param {object} [controls]
+   * @param {boolean} [controls.showPagination=true]
+   * @returns {string[]} Marcas de cada sección.
+   */
+  function renderBreedingPairsSections(specialCombos, standardPairs, controls = {}) {
+    const showPagination = controls.showPagination !== false;
+    const perPage = controls.perPage || 10;
+    const page = controls.page || 0;
+    const start = page * perPage;
+    const end = start + perPage;
+    const visibleStandard = standardPairs.slice(start, end);
+
+    const specialSection = renderBreedingPairsList(specialCombos, 'special');
+    const standardList =
+      visibleStandard.length > 0 ? renderBreedingPairsList(visibleStandard) : '';
+
+    const parts = [specialSection];
+
+    if (standardList) {
+      parts.push(standardList);
+
+      if (showPagination && standardPairs.length > perPage) {
+        const totalPages = Math.ceil(standardPairs.length / perPage);
+        const buttonId = `btn-breeding-pairs-more-${page + 1}`;
+        const isLast = page + 1 >= totalPages;
+        const label = isLast
+          ? 'Mostrar más combinaciones'
+          : `Mostrar más combinaciones (${perPage} más)`;
+
+        parts.push(`
+          <button class="breeding-pairs__load-more button button--secondary"
+            id="${buttonId}" type="button">${label}</button>
+        `);
+      }
+    }
+
+    return parts;
+  }
+
+  /**
+   * Renderiza una lista de pares de cría.
    *
    * @param {Array<{parent1: string, parent2: string, combinedRank: number, isSpecialCombo: boolean}>} pairs
-   * @returns {string} Markup HTML.
+   * @param {string} [sectionClass] Clase extra del contenedor ("special" | "standard").
+   * @returns {string} Marcas HTML.
    */
-  function renderBreedingPairs(pairs) {
+  function renderBreedingPairsList(pairs, sectionClass) {
     if (!pairs || pairs.length === 0) {
       return '<p class="breeding-pairs__empty">No se encontraron pares de cría.</p>';
     }
 
+    const containerClass = sectionClass
+      ? `breeding-pairs__list--${sectionClass}`
+      : 'breeding-pairs__list';
+
     return `
-      <ul class="breeding-pairs__list" role="list">
+      <ul class="${containerClass}" role="list">
         ${pairs
           .map(
             (pair) => `

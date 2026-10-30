@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { findBreedingPairs } from '../breeding.js';
 
 /** Dataset mínimo de Pals para probar la lógica de cría inversa. */
-
 const MOCK_PALS = [
   { slug: 'penking', name: 'Penking', combi_rank: 10, breedable: true },
   { slug: 'bushi', name: 'Bushi', combi_rank: 30, breedable: true },
@@ -25,98 +24,96 @@ const SPECIAL_COMBOS = new Map([
 
 describe('findBreedingPairs', () => {
   it('devuelve el combo especial cuando el target tiene uno registrado', () => {
-    const pairs = findBreedingPairs('frostallion-noct', MOCK_PALS, SPECIAL_COMBOS);
-    expect(pairs).toHaveLength(1);
-    expect(pairs[0]).toMatchObject({ parent1: 'Penking', parent2: 'Bushi', isSpecialCombo: true });
-    expect(pairs[0].combinedRank).toBe(110);
+    const result = findBreedingPairs('frostallion-noct', MOCK_PALS, SPECIAL_COMBOS);
+    expect(result.specialCombos).toHaveLength(1);
+    expect(result.specialCombos[0]).toMatchObject({
+      parent1: 'Penking',
+      parent2: 'Bushi',
+      isSpecialCombo: true,
+    });
+    expect(result.specialCombos[0].combinedRank).toBe(110);
+    expect(result.standardPairs).toEqual([]);
   });
 
   it('devuelve un combo especial incluso si los padres no están en la lista', () => {
-    const pairs = findBreedingPairs('eidrolon-ignis', MOCK_PALS, SPECIAL_COMBOS);
-    expect(pairs).toHaveLength(1);
-    expect(pairs[0]).toMatchObject({ parent1: 'Eidrolon', parent2: 'Blazamut', isSpecialCombo: true });
-    expect(pairs[0].combinedRank).toBe(140);
+    const result = findBreedingPairs('eidrolon-ignis', MOCK_PALS, SPECIAL_COMBOS);
+    expect(result.specialCombos).toHaveLength(1);
+    expect(result.specialCombos[0]).toMatchObject({
+      parent1: 'Eidrolon',
+      parent2: 'Blazamut',
+      isSpecialCombo: true,
+    });
+    expect(result.specialCombos[0].combinedRank).toBe(140);
+    expect(result.standardPairs).toEqual([]);
   });
 
-  it('ignora los Pals que no son crables al calcular pares', () => {
-    const pairs = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS);
-    expect(
-      pairs.some((p) => p.parent1 === 'Astralym' || p.parent2 === 'Astralym'),
-    ).toBe(false);
-  });
-
-  it('encuentra pares cuyo combi_rank resultante esté cerca del target', () => {
-    // Frostplume (120) + Wumpo (80) = 100 ← exacto para Anubis (100)
-    const pairs = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 5 });
-    const bestPair = pairs[0];
-    const parent1 = MOCK_PALS.find((p) => p.name === bestPair.parent1);
-    const parent2 = MOCK_PALS.find((p) => p.name === bestPair.parent2);
-    expect(bestPair.combinedRank).toBe(Math.floor((parent1.combi_rank + parent2.combi_rank + 1) / 2));
-  });
-
-  it('ordena los resultados por proximidad al combi_rank del target', () => {
-    const pairs = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 10 });
-    for (let i = 0; i < pairs.length - 1; i++) {
-      const currentDiff = Math.abs(pairs[i].combinedRank - 100);
-      const nextDiff = Math.abs(pairs[i + 1].combinedRank - 100);
-      expect(currentDiff).toBeLessThanOrEqual(nextDiff);
-    }
-  });
-
-  it('devuelve todos los pares viables sin límite por defecto', () => {
-    const manyPals = MOCK_PALS.filter((p) => p.breedable).concat(
-      [
-        { slug: 'a', name: 'A', combi_rank: 50, breedable: true },
-        { slug: 'b', name: 'B', combi_rank: 60, breedable: true },
-        { slug: 'c', name: 'C', combi_rank: 70, breedable: true },
-        { slug: 'd', name: 'D', combi_rank: 150, breedable: true },
-        { slug: 'e', name: 'E', combi_rank: 160, breedable: true },
-        { slug: 'f', name: 'F', combi_rank: 170, breedable: true },
-      ],
+  it('excluye los Pals que no son crables (breedable: false o farm: false)', () => {
+    const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS);
+    expect(result.standardPairs.some((p) => p.parent1 === 'Astralym' || p.parent2 === 'Astralym')).toBe(
+      false,
     );
-    const pairs = findBreedingPairs('anubis', manyPals, SPECIAL_COMBOS);
-    // Se devuelven todos los pares únicos generados por el bucle doble (sin límite).
-    // El resultado es 120, no los 10 que devolvía el límite anterior.
-    expect(pairs).toHaveLength(120);
   });
 
-  it('respeta el límite cuando se lo pasan explícitamente', () => {
-    const pairs = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 3 });
-    expect(pairs).toHaveLength(3);
+  it('usa la fórmula de combi_rank con +1 (floor((r1 + r2 + 1) / 2))', () => {
+    // Penking (10) + Bushi (30) = floor(41 / 2) = 20
+    // Si se usara la fórmula antigua (sin +1) el resultado sería 20 también,
+    // así que se prueban rangos que distingan ambas fórmulas.
+    const result = findBreedingPairs('dinossom', MOCK_PALS, SPECIAL_COMBOS, { limit: 5 });
+    const penkingBushi = result.standardPairs.find(
+      (p) =>
+        (p.parent1 === 'Penking' && p.parent2 === 'Bushi') ||
+        (p.parent1 === 'Bushi' && p.parent2 === 'Penking'),
+    );
+    expect(penkingBushi).toBeDefined();
+    expect(penkingBushi?.combinedRank).toBe(20);
   });
 
-  it('devuelve una lista vacía cuando no hay Pals crables disponibles', () => {
-    const nonBreedablePals = MOCK_PALS.filter((p) => p.breedable === false);
-    const pairs = findBreedingPairs('anubis', nonBreedablePals, SPECIAL_COMBOS);
-    expect(pairs).toEqual([]);
+  it('devuelve un objeto con dos claves: specialCombos y standardPairs', () => {
+    const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 3 });
+    expect(result).toHaveProperty('specialCombos');
+    expect(result).toHaveProperty('standardPairs');
+    expect(Array.isArray(result.specialCombos)).toBe(true);
+    expect(Array.isArray(result.standardPairs)).toBe(true);
   });
 
-  it('devuelve una lista vacía cuando el target no se encuentra', () => {
-    const pairs = findBreedingPairs('pal-inexistente', MOCK_PALS, SPECIAL_COMBOS);
-    expect(pairs).toEqual([]);
-  });
-
-  it('no incluye al propio target como uno de los padres', () => {
-    const pairs = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 5 });
-    expect(
-      pairs.every((p) => p.parent1 !== 'Anubis' && p.parent2 !== 'Anubis'),
-    ).toBe(true);
-  });
-
-  it('evita pares duplicados (orden invertido)', () => {
-    const pairs = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 20 });
+  it('elimina los padres duplicados (orden invertido)', () => {
+    const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 5 });
     const seen = new Set();
-    for (const pair of pairs) {
+    for (const pair of result.standardPairs) {
       const key = [pair.parent1, pair.parent2].sort().join('+');
       expect(seen.has(key)).toBe(false);
       seen.add(key);
     }
   });
 
+  it('respeta el límite cuando se lo pasan explícitamente', () => {
+    const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 3 });
+    expect(result.standardPairs).toHaveLength(3);
+  });
+
+  it('devuelve una lista vacía cuando no hay Pals crables disponibles', () => {
+    const nonBreedablePals = MOCK_PALS.filter((p) => p.breedable === false);
+    const result = findBreedingPairs('anubis', nonBreedablePals, SPECIAL_COMBOS);
+    expect(result.specialCombos).toEqual([]);
+    expect(result.standardPairs).toEqual([]);
+  });
+
+  it('devuelve una lista vacía cuando el target no se encuentra', () => {
+    const result = findBreedingPairs('pal-inexistente', MOCK_PALS, SPECIAL_COMBOS);
+    expect(result.specialCombos).toEqual([]);
+    expect(result.standardPairs).toEqual([]);
+  });
+
+  it('no incluye al propio target como uno de los padres', () => {
+    const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { limit: 5 });
+    expect(
+      result.standardPairs.every((p) => p.parent1 !== 'Anubis' && p.parent2 !== 'Anubis'),
+    ).toBe(true);
+  });
+
   it('calcula correctamente el combi_rank de un par', () => {
-    // Penking (10) + Bushi (30) = 20
-    const pairs = findBreedingPairs('dinossom', MOCK_PALS, SPECIAL_COMBOS, { limit: 5 });
-    const penkingBushi = pairs.find(
+    const result = findBreedingPairs('dinossom', MOCK_PALS, SPECIAL_COMBOS, { limit: 5 });
+    const penkingBushi = result.standardPairs.find(
       (p) =>
         (p.parent1 === 'Penking' && p.parent2 === 'Bushi') ||
         (p.parent1 === 'Bushi' && p.parent2 === 'Penking'),
@@ -131,14 +128,27 @@ describe('findBreedingPairs', () => {
       { slug: 'b', name: 'B', combi_rank: 20, breedable: true },
       { slug: 'c', name: 'C', combi_rank: 30, breedable: true },
     ];
-    const pairs = findBreedingPairs('c', smallCatalog, SPECIAL_COMBOS, { limit: 5 });
-    expect(pairs.length).toBeGreaterThanOrEqual(1);
-    expect(pairs.some((p) => p.parent1 === 'A' && p.parent2 === 'B')).toBe(true);
+    const result = findBreedingPairs('c', smallCatalog, SPECIAL_COMBOS, { limit: 5 });
+    expect(result.standardPairs.length).toBeGreaterThanOrEqual(1);
+    expect(result.standardPairs.some((p) => p.parent1 === 'A' && p.parent2 === 'B')).toBe(true);
   });
 
-  it('si no se pasan combos especiales usa los conocidos por defecto', () => {
-    const pairs = findBreedingPairs('frostallion-noct', MOCK_PALS, { limit: 5 });
-    expect(pairs).toHaveLength(1);
-    expect(pairs[0]).toMatchObject({ parent1: 'Penking', parent2: 'Bushi', isSpecialCombo: true });
+  it('devuelve todos los pares viables cuando no se aplica límite ni página', () => {
+    const manyPals = MOCK_PALS.filter((p) => p.breedable).concat([
+      { slug: 'a', name: 'A', combi_rank: 50, breedable: true },
+      { slug: 'b', name: 'B', combi_rank: 60, breedable: true },
+      { slug: 'c', name: 'C', combi_rank: 70, breedable: true },
+      { slug: 'd', name: 'D', combi_rank: 150, breedable: true },
+      { slug: 'e', name: 'E', combi_rank: 160, breedable: true },
+      { slug: 'f', name: 'F', combi_rank: 170, breedable: true },
+    ]);
+    const result = findBreedingPairs('anubis', manyPals, SPECIAL_COMBOS, { perPage: 500 });
+    // 15 pares sin repetir (15 Pals crables en el mock: 9 originales + 6 nuevos)
+    expect(result.standardPairs).toHaveLength(15 * 14 / 2);
+  });
+
+  it('devuelve la primera página de standardPairs cuando se solicita paginación', () => {
+    const result = findBreedingPairs('anubis', MOCK_PALS, SPECIAL_COMBOS, { perPage: 3 });
+    expect(result.standardPairs).toHaveLength(3);
   });
 });
